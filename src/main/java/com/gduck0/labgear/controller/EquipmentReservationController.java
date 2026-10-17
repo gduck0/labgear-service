@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.HttpStatus;
 
-import java.util.Optional;
+import jakarta.validation.Valid;
 
 @RestController
 public class EquipmentReservationController {
@@ -26,21 +26,21 @@ public class EquipmentReservationController {
 
     @PostMapping("/reservations")
     @ResponseStatus(HttpStatus.CREATED)
-    public void createReservation(@RequestBody EquipmentReservationCreateRequest request) {
+    public void createReservation(@Valid @RequestBody EquipmentReservationCreateRequest request) {
         reservationService.addReservation(request.getId(), request.getStudentId(), request.getEquipmentItemId(),
                 request.getStartDate(), request.getEndDate());
     }
 
     @GetMapping("/reservations/{id}")
-    public Optional<EquipmentReservationResponse> getReservation(@PathVariable int id) {
-        Optional<EquipmentReservation> result = reservationService.getReservation(id);
-        Optional<EquipmentReservationResponse> response = result.map(reservation -> new EquipmentReservationResponse(
-                reservation.getId(),
-                reservation.getStudent().getId(),
-                reservation.getEquipmentItem().getId(),
-                reservation.getStartDate(),
-                reservation.getEndDate()));
-
+    public EquipmentReservationResponse getReservation(@PathVariable int id) {
+        EquipmentReservation reservation = reservationService.getReservation(id);
+        EquipmentReservationResponse response = new EquipmentReservationResponse(
+            reservation.getId(),
+            reservation.getStudent().getId(),
+            reservation.getEquipmentItem().getId(),
+            reservation.getStartDate(),
+            reservation.getEndDate()
+        );
         return response;
     }
 }
