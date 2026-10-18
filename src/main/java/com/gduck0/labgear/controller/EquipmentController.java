@@ -18,6 +18,8 @@ import com.gduck0.labgear.dto.EquipmentNameUpdateRequest;
 import com.gduck0.labgear.entity.EquipmentItem;
 import com.gduck0.labgear.service.EquipmentService;
 
+import jakarta.validation.Valid;
+
 @RestController
 class EquipmentController {
     private EquipmentService equipmentService;
@@ -37,15 +39,15 @@ class EquipmentController {
     }
 
     @PostMapping("/equipment")
-    public void addEquipment(@RequestBody EquipmentCreateRequest request) {
+    public void addEquipment(@Valid @RequestBody EquipmentCreateRequest request) {
         EquipmentItem item = new EquipmentItem(request.getId(), request.getName());
         equipmentService.addEquipment(item);
     }
 
     @GetMapping("/equipment/{id}")
-    public Optional<EquipmentResponse> getEquipmentById(@PathVariable int id) {
-        Optional<EquipmentItem> result = equipmentService.getEquipmentById(id);
-        Optional<EquipmentResponse> response = result.map(item -> new EquipmentResponse(item.getId(), item.getName()));
+    public EquipmentResponse getEquipmentById(@PathVariable int id) {
+        EquipmentItem item = equipmentService.getEquipmentById(id);
+        EquipmentResponse response = new EquipmentResponse(item.getId(), item.getName());
         return response;
     }
 
@@ -55,7 +57,7 @@ class EquipmentController {
     }
 
     @PatchMapping("/equipment/{id}/name")
-    public void changeEquipmentName(@PathVariable int id, @RequestBody EquipmentNameUpdateRequest request) {
+    public void changeEquipmentName(@PathVariable int id, @Valid @RequestBody EquipmentNameUpdateRequest request) {
         equipmentService.changeEquipmentName(id, request.getName());
     }
 }
