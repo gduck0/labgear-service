@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.AssertTrue;
 
-public class EquipmentReservationCreateRequest {
+public class ReservationCreateRequest {
     @Positive
     private int id;
 
@@ -14,7 +14,7 @@ public class EquipmentReservationCreateRequest {
     private int studentId;
 
     @Positive
-    private int equipmentItemId;
+    private int equipmentId;
 
     @NotNull
     private LocalDate startDate;
@@ -33,13 +33,13 @@ public class EquipmentReservationCreateRequest {
         return true;
     }
 
-    protected EquipmentReservationCreateRequest() {
+    protected ReservationCreateRequest() {
     }
 
-    public EquipmentReservationCreateRequest(int id, int studentId, int equipmentItemId, LocalDate startDate, LocalDate endDate) {
+    public ReservationCreateRequest(int id, int studentId, int equipmentId, LocalDate startDate, LocalDate endDate) {
         this.id = id;
         this.studentId = studentId;
-        this.equipmentItemId = equipmentItemId;
+        this.equipmentId = equipmentId;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -52,8 +52,8 @@ public class EquipmentReservationCreateRequest {
         return studentId;
     }
 
-    public int getEquipmentItemId() {
-        return equipmentItemId;
+    public int getEquipmentId() {
+        return equipmentId;
     }
 
     public LocalDate getStartDate() {

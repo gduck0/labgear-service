@@ -2,17 +2,17 @@ package com.gduck0.labgear.dto;
 
 import java.time.LocalDate;
 
-public class EquipmentReservationResponse {
+public class ReservationResponse {
     private int id;
     private int studentId;
-    private int equipmentItemId;
+    private int equipmentId;
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public EquipmentReservationResponse(int id, int studentId, int equipmentItemId, LocalDate startDate, LocalDate endDate) {
+    public ReservationResponse(int id, int studentId, int equipmentId, LocalDate startDate, LocalDate endDate) {
         this.id = id;
         this.studentId = studentId;
-        this.equipmentItemId = equipmentItemId;
+        this.equipmentId = equipmentId;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -25,8 +25,8 @@ public class EquipmentReservationResponse {
         return studentId;
     }
 
-    public int getEquipmentItemId() {
-        return equipmentItemId;
+    public int getEquipmentId() {
+        return equipmentId;
     }
 
     public LocalDate getStartDate() {

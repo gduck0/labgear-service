@@ -7,18 +7,18 @@ import jakarta.persistence.Column;
 
 @Entity
 @Table(name = "equipment_items")
-public class EquipmentItem {
+public class Equipment {
     @Id
     private int id;
     @Column(nullable = false, length = 100)
     private String name;
 
-    public EquipmentItem(int id, String name) {
+    public Equipment(int id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    protected EquipmentItem() {
+    protected Equipment() {
     }
 
     public int getId() {
@@ -29,7 +29,7 @@ public class EquipmentItem {
         return this.name;
     }
 
-    public void changeName(String name) {
+    public void updateName(String name) {
         this.name = name;
     }
 }

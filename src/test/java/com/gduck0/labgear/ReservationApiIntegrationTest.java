@@ -1,18 +1,12 @@
-
 package com.gduck0.labgear;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.time.LocalDate;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,62 +14,25 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.gduck0.labgear.entity.EquipmentItem;
-import com.gduck0.labgear.entity.EquipmentReservation;
+import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.entity.Student;
-import com.gduck0.labgear.repository.SpringDataEquipmentRepository;
-import com.gduck0.labgear.repository.SpringDataStudentRepository;
-import com.gduck0.labgear.service.EquipmentReservationService;
+import com.gduck0.labgear.repository.EquipmentRepository;
+import com.gduck0.labgear.repository.StudentRepository;
 
+// 예약 API의 생성·조회, 중복·날짜 충돌 및 없는 기자재의 오류를 검증한다.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class EquipmentReservationIntegrationTest {
-
-    @Autowired
-    private EquipmentReservationService reservationService;
-
-    @Autowired
-    private SpringDataStudentRepository studentRepository;
-
-    @Autowired
-    private SpringDataEquipmentRepository equipmentRepository;
+class ReservationApiIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    void reservationSaveAndReadWorks() {
-        int baseId = ThreadLocalRandom.current()
-                .nextInt(100_000_000, 600_000_000);
+    @Autowired
+    private StudentRepository studentRepository;
 
-        int reservationId = baseId;
-        int studentId = baseId + 1;
-        int equipmentItemId = baseId + 2;
-
-        LocalDate startDate = LocalDate.of(2026, 10, 10);
-        LocalDate endDate = LocalDate.of(2026, 10, 12);
-
-        studentRepository.save(
-                new Student(studentId, "TEST-STUDENT-DIRECT"));
-
-        equipmentRepository.save(
-                new EquipmentItem(equipmentItemId, "TEST-CAMERA-DIRECT"));
-
-        reservationService.addReservation(
-                reservationId, studentId, equipmentItemId,
-                startDate, endDate);
-
-        EquipmentReservation reservation =
-                reservationService.getReservation(reservationId);
-
-        assertEquals(reservationId, reservation.getId());
-        assertEquals(studentId, reservation.getStudent().getId());
-        assertEquals(equipmentItemId, reservation.getEquipmentItem().getId());
-        assertEquals(startDate, reservation.getStartDate());
-        assertEquals(endDate, reservation.getEndDate());
-    }
+    @Autowired
+    private EquipmentRepository equipmentRepository;
 
     @Test
     void reservationPostAndGetWorks() throws Exception {
@@ -84,23 +41,23 @@ class EquipmentReservationIntegrationTest {
 
         int reservationId = baseId;
         int studentId = baseId + 1;
-        int equipmentItemId = baseId + 2;
+        int equipmentId = baseId + 2;
 
         studentRepository.save(
                 new Student(studentId, "TEST-STUDENT-HTTP"));
 
         equipmentRepository.save(
-                new EquipmentItem(equipmentItemId, "TEST-CAMERA-HTTP"));
+                new Equipment(equipmentId, "TEST-CAMERA-HTTP"));
 
         String requestJson = """
             {
                 "id": %d,
                 "studentId": %d,
-                "equipmentItemId": %d,
+                "equipmentId": %d,
                 "startDate": "2026-10-20",
                 "endDate": "2026-10-22"
             }
-            """.formatted(reservationId, studentId, equipmentItemId);
+            """.formatted(reservationId, studentId, equipmentId);
 
         mockMvc.perform(
                 post("/reservations")
@@ -113,7 +70,7 @@ class EquipmentReservationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(reservationId))
                 .andExpect(jsonPath("$.studentId").value(studentId))
-                .andExpect(jsonPath("$.equipmentItemId").value(equipmentItemId))
+                .andExpect(jsonPath("$.equipmentId").value(equipmentId))
                 .andExpect(jsonPath("$.startDate").value("2026-10-20"))
                 .andExpect(jsonPath("$.endDate").value("2026-10-22"));
     }
@@ -134,16 +91,16 @@ class EquipmentReservationIntegrationTest {
                 new Student(studentId, "TEST-STUDENT"));
 
         equipmentRepository.save(
-                new EquipmentItem(firstEquipmentId, "TEST-CAMERA"));
+                new Equipment(firstEquipmentId, "TEST-CAMERA"));
 
         equipmentRepository.save(
-                new EquipmentItem(secondEquipmentId, "TEST-LAPTOP"));
+                new Equipment(secondEquipmentId, "TEST-LAPTOP"));
 
         String firstRequest = """
             {
                 "id": %d,
                 "studentId": %d,
-                "equipmentItemId": %d,
+                "equipmentId": %d,
                 "startDate": "2026-10-20",
                 "endDate": "2026-10-22"
             }
@@ -159,7 +116,7 @@ class EquipmentReservationIntegrationTest {
             {
                 "id": %d,
                 "studentId": %d,
-                "equipmentItemId": %d,
+                "equipmentId": %d,
                 "startDate": "2026-10-25",
                 "endDate": "2026-10-27"
             }
@@ -177,66 +134,110 @@ class EquipmentReservationIntegrationTest {
         mockMvc.perform(get("/reservations/{id}", reservationId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.studentId").value(studentId))
-                .andExpect(jsonPath("$.equipmentItemId").value(firstEquipmentId))
+                .andExpect(jsonPath("$.equipmentId").value(firstEquipmentId))
                 .andExpect(jsonPath("$.startDate").value("2026-10-20"))
                 .andExpect(jsonPath("$.endDate").value("2026-10-22"));
     }
 
     @Test
-    void deletingReservedEquipmentReturns409AndPreservesData()
+    void overlappingReservationReturns409AndAdjacentDatesWork()
             throws Exception {
 
         int baseId = ThreadLocalRandom.current()
                 .nextInt(100_000_000, 600_000_000);
 
-        int reservationId = baseId;
         int studentId = baseId + 1;
         int equipmentId = baseId + 2;
+        int firstId = baseId + 3;
+        int conflictId = baseId + 4;
+        int nextId = baseId + 5;
 
-        studentRepository.save(
-                new Student(studentId, "TEST-STUDENT"));
+        studentRepository.save(new Student(studentId, "TEST-STUDENT"));
+        equipmentRepository.save(new Equipment(equipmentId, "TEST-CAMERA"));
 
-        equipmentRepository.save(
-                new EquipmentItem(equipmentId, "TEST-CAMERA"));
+        String firstRequest = requestJson(
+                firstId, studentId, equipmentId,
+                "2026-10-20", "2026-10-22"
+        );
 
-        reservationService.addReservation(
-                reservationId,
-                studentId,
-                equipmentId,
-                LocalDate.of(2026, 10, 20),
-                LocalDate.of(2026, 10, 22));
+        mockMvc.perform(post("/reservations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(firstRequest))
+            .andExpect(status().isCreated());
 
-        mockMvc.perform(delete("/equipment/{id}", equipmentId))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value(409));
+        String conflictRequest = requestJson(
+                conflictId, studentId, equipmentId,
+                "2026-10-22", "2026-10-23"
+        );
 
-        EquipmentItem item =
-                equipmentRepository.findById(equipmentId).orElseThrow();
+        mockMvc.perform(post("/reservations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(conflictRequest))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.status").value(409));
 
-        EquipmentReservation reservation =
-                reservationService.getReservation(reservationId);
+        mockMvc.perform(get("/reservations/{id}", conflictId))
+            .andExpect(status().isNotFound());
 
-        assertEquals("TEST-CAMERA", item.getName());
-        assertEquals(equipmentId, reservation.getEquipmentItem().getId());
-        assertEquals(
-                LocalDate.of(2026, 10, 20),
-                reservation.getStartDate());
-        assertEquals(
-                LocalDate.of(2026, 10, 22),
-                reservation.getEndDate());
+        mockMvc.perform(get("/reservations/{id}", firstId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.startDate").value("2026-10-20"))
+            .andExpect(jsonPath("$.endDate").value("2026-10-22"));
+
+        String nextRequest = requestJson(
+                nextId, studentId, equipmentId,
+                "2026-10-23", "2026-10-24"
+        );
+
+        mockMvc.perform(post("/reservations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(nextRequest))
+            .andExpect(status().isCreated());
     }
 
     @Test
-    void deletingUnreservedEquipmentSucceeds() throws Exception {
-        int equipmentId = ThreadLocalRandom.current()
-                .nextInt(600_000_000, 900_000_000);
+    void missingEquipmentReturns404AndDoesNotCreateReservation() throws Exception {
+        int baseId = ThreadLocalRandom.current()
+                .nextInt(100_000_000, 600_000_000);
 
-        equipmentRepository.save(
-                new EquipmentItem(equipmentId, "TEST-AVAILABLE-CAMERA"));
+        int studentId = baseId + 1;
+        int equipmentId = baseId + 2;
+        int reservationId = baseId + 3;
 
-        mockMvc.perform(delete("/equipment/{id}", equipmentId))
-                .andExpect(status().isOk());
+        studentRepository.save(new Student(studentId, "TEST-STUDENT"));
 
-        assertFalse(equipmentRepository.findById(equipmentId).isPresent());
+        assertFalse(equipmentRepository.existsById(equipmentId));
+
+        String requestJson = requestJson(
+                reservationId, studentId, equipmentId,
+                "2026-10-20", "2026-10-22");
+
+        mockMvc.perform(post("/reservations")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message")
+                        .value("기자재를 찾을 수 없습니다. ID: " + equipmentId));
+
+        mockMvc.perform(get("/reservations/{id}", reservationId))
+                .andExpect(status().isNotFound());
+    }
+
+    private String requestJson(
+            int id, int studentId, int equipmentId,
+            String startDate, String endDate) {
+
+        return """
+            {
+                "id": %d,
+                "studentId": %d,
+                "equipmentId": %d,
+                "startDate": "%s",
+                "endDate": "%s"
+            }
+            """.formatted(
+                id, studentId, equipmentId, startDate, endDate
+            );
     }
 }

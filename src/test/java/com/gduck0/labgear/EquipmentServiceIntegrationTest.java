@@ -1,31 +1,28 @@
-
 package com.gduck0.labgear;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.gduck0.labgear.entity.EquipmentItem;
+import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.service.EquipmentService;
-import com.gduck0.labgear.repository.SpringDataEquipmentRepository;
-import com.gduck0.labgear.exception.DuplicateResourceException;
+import com.gduck0.labgear.repository.EquipmentRepository;
+import com.gduck0.labgear.exception.ResourceConflictException;
 
+// Service에서 기자재 CRUD와 중복 ID 충돌을 검증한다.
 @SpringBootTest
 @Transactional
-class EquipmentCrudIntegrationTest {
+class EquipmentServiceIntegrationTest {
 
     @Autowired
     private EquipmentService equipmentService;
 
     @Autowired
-    private SpringDataEquipmentRepository equipmentRepository;
+    private EquipmentRepository equipmentRepository;
 
     @Test
     void equipmentCrudWorks() {
@@ -37,19 +34,19 @@ class EquipmentCrudIntegrationTest {
 
         assertFalse(equipmentRepository.findById(id).isPresent());
 
-        EquipmentItem item = new EquipmentItem(id, originalName);
-        equipmentService.addEquipment(item);
+        Equipment item = new Equipment(id, originalName);
+        equipmentService.createEquipment(item);
 
-        EquipmentItem savedItem =
-                equipmentService.getEquipmentById(id);
+        Equipment savedItem =
+                equipmentService.getEquipment(id);
 
         assertEquals(id, savedItem.getId());
         assertEquals(originalName, savedItem.getName());
 
-        equipmentService.changeEquipmentName(id, changedName);
+        equipmentService.updateEquipmentName(id, changedName);
 
-        EquipmentItem updatedItem =
-                equipmentService.getEquipmentById(id);
+        Equipment updatedItem =
+                equipmentService.getEquipment(id);
 
         assertEquals(changedName, updatedItem.getName());
 
@@ -65,18 +62,18 @@ class EquipmentCrudIntegrationTest {
 
         assertFalse(equipmentRepository.findById(id).isPresent());
 
-        equipmentService.addEquipment(
-                new EquipmentItem(id, "TEST-CAMERA")
+        equipmentService.createEquipment(
+                new Equipment(id, "TEST-CAMERA")
         );
 
-        assertThrows(DuplicateResourceException.class, () -> {
-            equipmentService.addEquipment(
-                    new EquipmentItem(id, "TEST-LAPTOP")
+        assertThrows(ResourceConflictException.class, () -> {
+            equipmentService.createEquipment(
+                    new Equipment(id, "TEST-LAPTOP")
             );
         });
 
-        EquipmentItem unchanged =
-                equipmentService.getEquipmentById(id);
+        Equipment unchanged =
+                equipmentService.getEquipment(id);
 
         assertEquals("TEST-CAMERA", unchanged.getName());
     }
