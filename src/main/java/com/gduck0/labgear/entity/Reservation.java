@@ -10,7 +10,7 @@ import jakarta.persistence.JoinColumn;
 
 @Entity
 @Table(name = "equipment_reservations")
-public class EquipmentReservation {
+public class Reservation {
     @Id
     private int id;
 
@@ -20,19 +20,19 @@ public class EquipmentReservation {
 
     @ManyToOne
     @JoinColumn(name = "equipment_item_id")
-    private EquipmentItem equipmentItem;
+    private Equipment equipment;
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public EquipmentReservation(int id, Student student, EquipmentItem equipmentItem, LocalDate startDate, LocalDate endDate) {
+    public Reservation(int id, Student student, Equipment equipment, LocalDate startDate, LocalDate endDate) {
         this.id = id;
         this.student = student;
-        this.equipmentItem = equipmentItem;
+        this.equipment = equipment;
         this.startDate = startDate;
         this.endDate = endDate;
     }
 
-    protected EquipmentReservation() {
+    protected Reservation() {
     }
 
     public int getId() {
@@ -43,8 +43,8 @@ public class EquipmentReservation {
         return this.student;
     }
 
-    public EquipmentItem getEquipmentItem() {
-        return this.equipmentItem;
+    public Equipment getEquipment() {
+        return this.equipment;
     }
 
     public LocalDate getStartDate() {
