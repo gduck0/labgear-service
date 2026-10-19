@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import OperationsPanel from './OperationsPanel.jsx';
 import {
   ArrowDownAZ,
   ArrowUpRight,
@@ -172,6 +173,17 @@ export default function App() {
     setRefreshKey((key) => key + 1);
   }
 
+  function handleEquipmentChanged(nextId) {
+    setSelectedId(nextId);
+    setDetail(null);
+    setDetailError('');
+    const next = new URL(window.location.href);
+    if (nextId === null) next.searchParams.delete('equipment');
+    else next.searchParams.set('equipment', String(nextId));
+    window.history.replaceState(null, '', next);
+    refresh();
+  }
+
   const connection = loading ? 'connecting' : listError ? 'error' : 'connected';
   const countLabel = loading ? '—' : listError ? '—' : items.length.toLocaleString('ko-KR');
 
@@ -187,6 +199,12 @@ export default function App() {
         <nav className="side-navigation" aria-label="주 메뉴">
           <a className="side-link active" href="#catalog" aria-current="page">
             <Package size={18}/><span>기자재 탐색</span><ChevronRight size={16}/>
+          </a>
+          <a className="side-link" href="#manage">
+            <Layers3 size={18}/><span>기자재 관리</span><ChevronRight size={16}/>
+          </a>
+          <a className="side-link" href="#reservations">
+            <Clock3 size={18}/><span>예약 접수·조회</span><ChevronRight size={16}/>
           </a>
         </nav>
 
@@ -211,7 +229,7 @@ export default function App() {
             <div className="hero-text">
               <div className="hero-overline"><span className="mini-spark" /> LABGEAR · EQUIPMENT EXPLORER</div>
               <h1 id="hero-title">등록된 기자재를<br/><span>한눈에.</span></h1>
-              <p>학과 실습과 캡스톤 프로젝트에 필요한 기자재를<br className="desktop-break"/> 쉽고 편리하게 찾아보세요.</p>
+              <p>학과 실습과 프로젝트에 필요한 기자재를 찾고,<br className="desktop-break"/> 등록과 예약까지 한곳에서 관리하세요.</p>
               <a className="hero-action" href="#catalog">기자재 살펴보기 <ArrowUpRight size={17}/></a>
             </div>
             <div className="hero-visual" aria-hidden="true">
@@ -283,6 +301,12 @@ export default function App() {
               </aside>
             </div>
           </section>
+
+          <OperationsPanel
+            selectedEquipment={detail && detail.id === selectedId ? detail : null}
+            selectedEquipmentId={selectedId}
+            onEquipmentChanged={handleEquipmentChanged}
+          />
 
           <footer className="footer"><span>© LabGear · Academic Equipment Management</span><span>기자재 관리 시스템</span></footer>
         </div>

@@ -1,0 +1,76 @@
+.workspace-section { margin-top: 43px; scroll-margin-top: 24px; }
+.workspace-heading { margin-bottom: 22px; }
+.workspace-heading h2 { font-size: 26px; letter-spacing: -1px; font-weight: 850; color: #193042; margin: 5px 0 7px; }
+.workspace-heading p { color: #8295a2; line-height: 1.7; font-size: 12px; margin: 0; }
+.workspace-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+.workspace-panel { min-width: 0; background: #fff; border: 1px solid #e6ecf0; border-radius: 18px; padding: 26px; box-shadow: 0 7px 24px rgba(29, 55, 75, .035); }
+.workspace-panel-title { display: flex; align-items: center; gap: 13px; margin-bottom: 23px; }
+.workspace-panel-title h3 { font-size: 15px; font-weight: 800; color: #213949; margin: 0 0 4px; }
+.workspace-panel-title p { font-size: 11px; color: #91a2ae; line-height: 1.6; margin: 0; }
+.workspace-icon { display: grid; flex: 0 0 43px; height: 43px; place-items: center; color: #316e56; background: #e9f4e8; border-radius: 12px; }
+.workspace-icon.subdued { color: #52738d; background: #ebf1f6; }
+.workspace-form { display: flex; flex-direction: column; gap: 9px; }
+.workspace-form label { color: #526b7a; font-size: 11px; font-weight: 750; margin-top: 4px; }
+.workspace-form input { min-width: 0; width: 100%; background: #f8fafb; border: 1px solid #dfe8ee; border-radius: 10px; padding: 12px 13px; color: #213a4b; font-size: 12px; transition: border-color .2s, box-shadow .2s; }
+.workspace-form input::placeholder { color: #a7b5bf; }
+.workspace-form input:focus { outline: none; border-color: #74a890; box-shadow: 0 0 0 3px #dceee4; }
+.workspace-form input:disabled { background: #f2f5f7; color: #93a2ac; cursor: not-allowed; }
+.workspace-form input[type='date'] { color-scheme: light; }
+.workspace-field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.workspace-field-grid > div { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.workspace-field-grid label { margin-top: 4px; }
+.workspace-button { min-height: 43px; background: #f2f6f8; color: #426074; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 15px; border: 1px solid transparent; border-radius: 10px; font-size: 12px; font-weight: 800; transition: background .2s, transform .15s; white-space: nowrap; }
+.workspace-button.primary { background: #17394c; color: #fff; margin-top: 10px; }
+.workspace-button.primary:hover:not(:disabled) { background: #295a6c; }
+.workspace-button.secondary { background: #e7f0f1; color: #285869; border-color: #d7e5e8; }
+.workspace-button.secondary:hover:not(:disabled) { background: #dbe9ea; }
+.workspace-button.danger { background: #fff5f2; color: #ae554b; border-color: #f2dfdb; }
+.workspace-button.danger:hover:not(:disabled) { background: #fce7e0; }
+.workspace-button:disabled { opacity: .55; cursor: not-allowed; }
+.workspace-button:focus-visible { outline: 3px solid #82b5cf; outline-offset: 2px; }
+.workspace-actions { display: flex; gap: 10px; margin-top: 5px; }
+.workspace-actions .workspace-button { flex: 1; margin-top: 0; }
+.workspace-selected { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; color: #6c8796; background: #f3f7f8; border: 1px solid #e7edef; padding: 12px 13px; border-radius: 9px; margin-bottom: 15px; min-height: 42px; line-height: 1.65; }
+.workspace-selected svg { flex: 0 0 auto; margin-top: 2px; color: #7095a3; }
+.workspace-selected span { overflow-wrap: anywhere; }
+.workspace-selected strong { color: #294a5e; }
+.workspace-footnote { display: flex; align-items: flex-start; gap: 6px; color: #8899a6; font-size: 10px; line-height: 1.7; margin: 11px 0 0; }
+.workspace-footnote svg { flex: 0 0 auto; margin-top: 2px; }
+.workspace-notice { margin-top: 16px; padding: 13px 15px; border-radius: 11px; display: flex; align-items: flex-start; gap: 9px; font-size: 11px; font-weight: 650; line-height: 1.6; }
+.workspace-notice svg { flex: 0 0 auto; margin-top: 1px; }
+.workspace-notice.is-success { background: #edf7ef; border: 1px solid #d5e9d8; color: #306c47; }
+.workspace-notice.is-error { background: #fff3f0; border: 1px solid #f6dfda; color: #aa5146; }
+.reservation-section { margin-top: 44px; }
+.reservation-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.workspace-inline-form { display: flex; gap: 9px; }
+.workspace-inline-form input { flex: 1; }
+.workspace-inline-form button { flex: 0 0 auto; }
+.workspace-placeholder { min-height: 228px; margin-top: 17px; border: 1px dashed #d8e3e9; border-radius: 12px; background: #fafcfd; display: flex; align-items: center; justify-content: center; text-align: center; gap: 9px; flex-direction: column; color: #9aabb6; padding: 18px; }
+.workspace-placeholder svg { color: #a0b5c0; }
+.workspace-placeholder strong { color: #567083; font-size: 12px; }
+.workspace-placeholder span { font-size: 10px; line-height: 1.6; }
+.reservation-result { margin-top: 18px; border: 1px solid #dbe9e1; background: #f6fbf7; padding: 16px; border-radius: 12px; }
+.reservation-result-heading { display: flex; align-items: center; gap: 8px; color: #4b8461; font-size: 12px; padding-bottom: 11px; border-bottom: 1px solid #e0ece5; }
+.reservation-result-heading span { margin-left: auto; font-size: 10px; font-weight: 800; color: #71917e; }
+.reservation-result dl { margin: 8px 0 0; display: grid; gap: 2px; }
+.reservation-result dl div { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; font-size: 11px; }
+.reservation-result dt { color: #80988a; }
+.reservation-result dd { margin: 0; color: #305745; font-weight: 800; text-align: right; }
+@media (max-width: 1170px) {
+  .workspace-panel { padding: 20px; }
+  .workspace-grid { gap: 12px; }
+}
+@media (max-width: 900px) {
+  .workspace-grid, .reservation-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .workspace-heading h2 { font-size: 23px; }
+  .workspace-panel { padding: 18px 15px; }
+  .workspace-field-grid { gap: 9px; }
+  .workspace-panel-title { gap: 9px; }
+  .workspace-panel-title p { font-size: 10px; }
+  .workspace-button { padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-button, .workspace-form input { transition: none; }
+}
