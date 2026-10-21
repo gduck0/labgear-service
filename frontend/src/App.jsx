@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import OperationsPanel from './OperationsPanel.jsx';
+import AuthPanel from './AuthPanel.jsx';
 import {
   ArrowDownAZ,
   ArrowUpRight,
@@ -81,6 +82,7 @@ function InfoEmpty({ searchTerm }) {
 
 export default function App() {
   const [items, setItems] = useState([]);
+  const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState('');
   const [detail, setDetail] = useState(null);
@@ -302,11 +304,20 @@ export default function App() {
             </div>
           </section>
 
+          <AuthPanel onAuthChange={setAuthenticated} />
+          {authenticated ? (
           <OperationsPanel
             selectedEquipment={detail && detail.id === selectedId ? detail : null}
             selectedEquipmentId={selectedId}
             onEquipmentChanged={handleEquipmentChanged}
           />
+          ) : (
+            <section className="workspace-section" id="manage">
+              <h2>기자재 관리 및 예약</h2>
+              <p>등록·수정·예약을 이용하려면 위 계정 메뉴에서 로그인해 주세요.</p>
+              <div id="reservations" />
+            </section>
+          )}
 
           <footer className="footer"><span>© LabGear · Academic Equipment Management</span><span>기자재 관리 시스템</span></footer>
         </div>

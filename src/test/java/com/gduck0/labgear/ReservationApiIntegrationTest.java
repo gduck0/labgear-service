@@ -18,6 +18,8 @@ import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.entity.Student;
 import com.gduck0.labgear.repository.EquipmentRepository;
 import com.gduck0.labgear.repository.StudentRepository;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 // 예약 API의 생성·조회, 중복·날짜 충돌 및 없는 기자재의 오류를 검증한다.
 @SpringBootTest
@@ -60,13 +62,13 @@ class ReservationApiIntegrationTest {
             """.formatted(reservationId, studentId, equipmentId);
 
         mockMvc.perform(
-                post("/reservations")
+                post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(""));
 
-        mockMvc.perform(get("/reservations/{id}", reservationId))
+        mockMvc.perform(get("/reservations/{id}", reservationId).with(user("test@example.com").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(reservationId))
                 .andExpect(jsonPath("$.studentId").value(studentId))
@@ -107,7 +109,7 @@ class ReservationApiIntegrationTest {
             """.formatted(reservationId, studentId, firstEquipmentId);
 
         mockMvc.perform(
-                post("/reservations")
+                post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(firstRequest))
                 .andExpect(status().isCreated());
@@ -123,7 +125,7 @@ class ReservationApiIntegrationTest {
             """.formatted(reservationId, studentId, secondEquipmentId);
 
         mockMvc.perform(
-                post("/reservations")
+                post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(duplicateRequest))
                 .andExpect(status().isConflict())
@@ -131,7 +133,7 @@ class ReservationApiIntegrationTest {
                 .andExpect(jsonPath("$.message")
                         .value("이미 존재하는 예약 ID입니다."));
 
-        mockMvc.perform(get("/reservations/{id}", reservationId))
+        mockMvc.perform(get("/reservations/{id}", reservationId).with(user("test@example.com").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.studentId").value(studentId))
                 .andExpect(jsonPath("$.equipmentId").value(firstEquipmentId))
@@ -160,7 +162,7 @@ class ReservationApiIntegrationTest {
                 "2026-10-20", "2026-10-22"
         );
 
-        mockMvc.perform(post("/reservations")
+        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(firstRequest))
             .andExpect(status().isCreated());
@@ -170,16 +172,16 @@ class ReservationApiIntegrationTest {
                 "2026-10-22", "2026-10-23"
         );
 
-        mockMvc.perform(post("/reservations")
+        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(conflictRequest))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.status").value(409));
 
-        mockMvc.perform(get("/reservations/{id}", conflictId))
+        mockMvc.perform(get("/reservations/{id}", conflictId).with(user("test@example.com").roles("USER")))
             .andExpect(status().isNotFound());
 
-        mockMvc.perform(get("/reservations/{id}", firstId))
+        mockMvc.perform(get("/reservations/{id}", firstId).with(user("test@example.com").roles("USER")))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.startDate").value("2026-10-20"))
             .andExpect(jsonPath("$.endDate").value("2026-10-22"));
@@ -189,7 +191,7 @@ class ReservationApiIntegrationTest {
                 "2026-10-23", "2026-10-24"
         );
 
-        mockMvc.perform(post("/reservations")
+        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(nextRequest))
             .andExpect(status().isCreated());
@@ -212,7 +214,7 @@ class ReservationApiIntegrationTest {
                 reservationId, studentId, equipmentId,
                 "2026-10-20", "2026-10-22");
 
-        mockMvc.perform(post("/reservations")
+        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson))
                 .andExpect(status().isNotFound())
@@ -220,7 +222,7 @@ class ReservationApiIntegrationTest {
                 .andExpect(jsonPath("$.message")
                         .value("기자재를 찾을 수 없습니다. ID: " + equipmentId));
 
-        mockMvc.perform(get("/reservations/{id}", reservationId))
+        mockMvc.perform(get("/reservations/{id}", reservationId).with(user("test@example.com").roles("USER")))
                 .andExpect(status().isNotFound());
     }
 
