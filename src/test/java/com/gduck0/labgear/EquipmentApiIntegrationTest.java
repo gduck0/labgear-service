@@ -23,6 +23,8 @@ import com.gduck0.labgear.repository.EquipmentRepository;
 import com.gduck0.labgear.repository.StudentRepository;
 import com.gduck0.labgear.service.EquipmentService;
 import com.gduck0.labgear.service.ReservationService;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 // 기자재 API의 생성·오류 응답·삭제 조건과 데이터 보존을 검증한다.
 @SpringBootTest
@@ -56,7 +58,7 @@ class EquipmentApiIntegrationTest {
             }
             """.formatted(id);
 
-        mockMvc.perform(post("/equipment")
+        mockMvc.perform(post("/equipment").with(user("test@example.com").roles("USER")).with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
                 .andExpect(status().isCreated());
@@ -84,7 +86,7 @@ class EquipmentApiIntegrationTest {
             """.formatted(id);
 
         mockMvc.perform(
-                post("/equipment")
+                post("/equipment").with(user("test@example.com").roles("USER")).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
             )
@@ -109,7 +111,7 @@ class EquipmentApiIntegrationTest {
             """;
 
         mockMvc.perform(
-                post("/equipment")
+                post("/equipment").with(user("test@example.com").roles("USER")).with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(requestJson)
             )
@@ -128,12 +130,13 @@ class EquipmentApiIntegrationTest {
 
         mockMvc.perform(
                 get("/equipment/{id}", missingId)
-            )
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.message")
-                    .value("기자재를 찾을 수 없습니다. ID: " + missingId));
-    }
+                .with(user("test@example.com").roles("USER"))
+        )
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message")
+                .value("기자재를 찾을 수 없습니다. ID: " + missingId));
+        }
 
     @Test
     void deletingReservedEquipmentReturns409AndPreservesData()
@@ -159,7 +162,7 @@ class EquipmentApiIntegrationTest {
                 LocalDate.of(2026, 10, 20),
                 LocalDate.of(2026, 10, 22));
 
-        mockMvc.perform(delete("/equipment/{id}", equipmentId))
+        mockMvc.perform(delete("/equipment/{id}", equipmentId).with(user("test@example.com").roles("USER")).with(csrf()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
 
@@ -187,7 +190,7 @@ class EquipmentApiIntegrationTest {
         equipmentRepository.save(
                 new Equipment(equipmentId, "TEST-AVAILABLE-CAMERA"));
 
-        mockMvc.perform(delete("/equipment/{id}", equipmentId))
+        mockMvc.perform(delete("/equipment/{id}", equipmentId).with(user("test@example.com").roles("USER")).with(csrf()))
                 .andExpect(status().isOk());
 
         assertFalse(equipmentRepository.findById(equipmentId).isPresent());

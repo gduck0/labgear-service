@@ -4,3 +4,7 @@ out/
 .idea/
 *.iml
 bin/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/

@@ -5,39 +5,7 @@ import {
   ShieldAlert, Trash2,
 } from 'lucide-react';
 import './OperationsPanel.css';
-
-const API_ROOT = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
-
-async function requestApi(path, { method = 'GET', body } = {}) {
-  const response = await fetch(API_ROOT + path, {
-    method,
-    headers: {
-      Accept: 'application/json',
-      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-    },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-  });
-
-  const raw = await response.text();
-  let result = null;
-  if (raw) {
-    try {
-      result = JSON.parse(raw);
-    } catch {
-      if (response.ok) throw new Error('서버 응답을 해석할 수 없습니다.');
-    }
-  }
-  if (!response.ok) {
-    const error = new Error(
-      typeof result?.message === 'string' && result.message.trim()
-        ? result.message
-        : '요청을 처리하지 못했습니다.'
-    );
-    error.status = response.status;
-    throw error;
-  }
-  return result;
-}
+import { apiRequest as requestApi } from './apiClient.js';
 
 function describeError(error) {
   if (!error?.status) return error instanceof TypeError
