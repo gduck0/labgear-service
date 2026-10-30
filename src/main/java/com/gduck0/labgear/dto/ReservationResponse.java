@@ -1,28 +1,26 @@
+
 package com.gduck0.labgear.dto;
 
 import java.time.LocalDate;
 
 public class ReservationResponse {
-    private int id;
-    private int studentId;
-    private int equipmentId;
-    private LocalDate startDate;
-    private LocalDate endDate;
 
-    public ReservationResponse(int id, int studentId, int equipmentId, LocalDate startDate, LocalDate endDate) {
+    private final Long id;
+    private final int equipmentId;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
+
+    public ReservationResponse(
+            Long id, int equipmentId,
+            LocalDate startDate, LocalDate endDate) {
         this.id = id;
-        this.studentId = studentId;
         this.equipmentId = equipmentId;
         this.startDate = startDate;
         this.endDate = endDate;
     }
 
-     public int getId() {
+    public Long getId() {
         return id;
-    }
-
-    public int getStudentId() {
-        return studentId;
     }
 
     public int getEquipmentId() {

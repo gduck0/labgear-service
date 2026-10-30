@@ -1,17 +1,13 @@
+
 package com.gduck0.labgear.dto;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.AssertTrue;
 
 public class ReservationCreateRequest {
-    @Positive
-    private int id;
-
-    @Positive
-    private int studentId;
 
     @Positive
     private int equipmentId;
@@ -22,34 +18,15 @@ public class ReservationCreateRequest {
     @NotNull
     private LocalDate endDate;
 
+    public ReservationCreateRequest() {
+    }
+
     @AssertTrue
     public boolean isValidDateRange() {
         if (startDate == null || endDate == null) {
             return true;
         }
-        if (startDate.isAfter(endDate)) {
-            return false;
-        }
-        return true;
-    }
-
-    protected ReservationCreateRequest() {
-    }
-
-    public ReservationCreateRequest(int id, int studentId, int equipmentId, LocalDate startDate, LocalDate endDate) {
-        this.id = id;
-        this.studentId = studentId;
-        this.equipmentId = equipmentId;
-        this.startDate = startDate;
-        this.endDate = endDate;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public int getStudentId() {
-        return studentId;
+        return !startDate.isAfter(endDate);
     }
 
     public int getEquipmentId() {
@@ -62,5 +39,17 @@ public class ReservationCreateRequest {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public void setEquipmentId(int equipmentId) {
+        this.equipmentId = equipmentId;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 }

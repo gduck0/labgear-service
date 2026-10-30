@@ -1,50 +1,60 @@
+
 package com.gduck0.labgear.entity;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "equipment_reservations")
+@Table(name = "reservations")
 public class Reservation {
+
     @Id
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "student_id")
-    private Student student;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
-    @ManyToOne
-    @JoinColumn(name = "equipment_item_id")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "equipment_id", nullable = false)
     private Equipment equipment;
+
+    @Column(nullable = false)
     private LocalDate startDate;
+
+    @Column(nullable = false)
     private LocalDate endDate;
 
-    public Reservation(int id, Student student, Equipment equipment, LocalDate startDate, LocalDate endDate) {
-        this.id = id;
-        this.student = student;
+    protected Reservation() {
+    }
+
+    public Reservation(Account account, Equipment equipment,
+                       LocalDate startDate, LocalDate endDate) {
+        this.account = account;
         this.equipment = equipment;
         this.startDate = startDate;
         this.endDate = endDate;
     }
 
-    protected Reservation() {
+    public Long getId() {
+        return id;
     }
 
-    public int getId() {
-        return this.id;
-    }
-
-    public Student getStudent() {
-        return this.student;
+    public Account getAccount() {
+        return account;
     }
 
     public Equipment getEquipment() {
-        return this.equipment;
+        return equipment;
     }
 
     public LocalDate getStartDate() {

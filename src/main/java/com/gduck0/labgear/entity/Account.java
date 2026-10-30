@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 
 @Entity
 @Table(name = "accounts")
@@ -20,9 +22,14 @@ public class Account {
     @Column(nullable = false, length = 255)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     public Account(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash;
+        this.role = Role.USER;
     }
 
     protected Account() {
@@ -39,4 +46,8 @@ public class Account {
     public String getPasswordHash() {
         return passwordHash;
     }
+
+    public Role getRole() {
+    return role;
+}
 }

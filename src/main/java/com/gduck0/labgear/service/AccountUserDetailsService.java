@@ -20,6 +20,6 @@ public class AccountUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) {
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException ("존재하지 않는 이메일입니다."));
-        return User.withUsername(account.getEmail()).password(account.getPasswordHash()).roles("USER").build();
+        return User.withUsername(account.getEmail()).password(account.getPasswordHash()).roles(account.getRole().name()).build();
     }
 }

@@ -1,20 +1,25 @@
+
 package com.gduck0.labgear;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.time.LocalDate;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.gduck0.labgear.entity.Account;
 import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.entity.Reservation;
-import com.gduck0.labgear.entity.Student;
+import com.gduck0.labgear.repository.AccountRepository;
 import com.gduck0.labgear.repository.EquipmentRepository;
-import com.gduck0.labgear.repository.StudentRepository;
 import com.gduck0.labgear.service.ReservationService;
 
-// Service의 예약 저장과 조회 결과를 DB와 함께 확인한다.
 @SpringBootTest
 @Transactional
 class ReservationServiceIntegrationTest {
@@ -23,40 +28,38 @@ class ReservationServiceIntegrationTest {
     private ReservationService reservationService;
 
     @Autowired
-    private StudentRepository studentRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
     private EquipmentRepository equipmentRepository;
 
     @Test
     void reservationSaveAndReadWorks() {
-        int baseId = ThreadLocalRandom.current()
-                .nextInt(100_000_000, 600_000_000);
+        String email = UUID.randomUUID() + "@example.com";
+        int equipmentId = ThreadLocalRandom.current()
+                .nextInt(100_000_000, Integer.MAX_VALUE);
 
-        int reservationId = baseId;
-        int studentId = baseId + 1;
-        int equipmentId = baseId + 2;
-
-        LocalDate startDate = LocalDate.of(2026, 10, 10);
-        LocalDate endDate = LocalDate.of(2026, 10, 12);
-
-        studentRepository.save(
-                new Student(studentId, "TEST-STUDENT-DIRECT"));
+        Account account = accountRepository.save(
+                new Account(email, "test-password-hash"));
 
         equipmentRepository.save(
-                new Equipment(equipmentId, "TEST-CAMERA-DIRECT"));
+                new Equipment(equipmentId, "TEST-CAMERA"));
 
-        reservationService.createReservation(
-                reservationId, studentId, equipmentId,
-                startDate, endDate);
+        LocalDate startDate = LocalDate.of(2026, 11, 10);
+        LocalDate endDate = LocalDate.of(2026, 11, 12);
 
-        Reservation reservation =
-                reservationService.getReservation(reservationId);
+        Reservation created = reservationService.createReservation(
+                email, equipmentId, startDate, endDate);
 
-        assertEquals(reservationId, reservation.getId());
-        assertEquals(studentId, reservation.getStudent().getId());
-        assertEquals(equipmentId, reservation.getEquipment().getId());
-        assertEquals(startDate, reservation.getStartDate());
-        assertEquals(endDate, reservation.getEndDate());
+        assertNotNull(created.getId());
+
+        Reservation found = reservationService.getReservation(
+                created.getId(), email);
+
+        assertEquals(created.getId(), found.getId());
+        assertEquals(account.getId(), found.getAccount().getId());
+        assertEquals(equipmentId, found.getEquipment().getId());
+        assertEquals(startDate, found.getStartDate());
+        assertEquals(endDate, found.getEndDate());
     }
 }

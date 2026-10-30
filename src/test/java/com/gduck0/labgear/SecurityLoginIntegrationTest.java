@@ -9,6 +9,7 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
@@ -24,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gduck0.labgear.service.AccountService;
 
-// 실제 DB 계정으로 Spring Security 로그인·세션·로그아웃 동작을 검증한다.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -47,7 +47,7 @@ class SecurityLoginIntegrationTest {
                 .with(csrf())
                 .param("email", email)
                 .param("password", password))
-                .andExpect(status().isNoContent())
+                .andExpect(status().isOk())
                 .andExpect(authenticated().withUsername(email))
                 .andReturn();
 
@@ -90,7 +90,8 @@ class SecurityLoginIntegrationTest {
     @Test
     void unauthenticatedUserCannotAccessMe() throws Exception {
         mockMvc.perform(get("/accounts/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
@@ -104,6 +105,7 @@ class SecurityLoginIntegrationTest {
                 .with(csrf())
                 .param("email", email)
                 .param("password", password))
+                .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andReturn();
 
@@ -120,6 +122,7 @@ class SecurityLoginIntegrationTest {
         assertTrue(session.isInvalid());
 
         mockMvc.perform(get("/accounts/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
     }
 }

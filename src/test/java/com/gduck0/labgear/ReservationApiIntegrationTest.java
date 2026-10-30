@@ -1,27 +1,37 @@
+
 package com.gduck0.labgear;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import com.gduck0.labgear.entity.Equipment;
-import com.gduck0.labgear.entity.Student;
-import com.gduck0.labgear.repository.EquipmentRepository;
-import com.gduck0.labgear.repository.StudentRepository;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
-// 예약 API의 생성·조회, 중복·날짜 충돌 및 없는 기자재의 오류를 검증한다.
+import com.gduck0.labgear.entity.Account;
+import com.gduck0.labgear.entity.Equipment;
+import com.gduck0.labgear.entity.Reservation;
+import com.gduck0.labgear.repository.AccountRepository;
+import com.gduck0.labgear.repository.EquipmentRepository;
+import com.gduck0.labgear.repository.ReservationRepository;
+import com.gduck0.labgear.service.AccountService;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -31,215 +41,207 @@ class ReservationApiIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private StudentRepository studentRepository;
+    private AccountService accountService;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Autowired
     private EquipmentRepository equipmentRepository;
 
+    @Autowired
+    private ReservationRepository reservationRepository;
+
     @Test
-    void reservationPostAndGetWorks() throws Exception {
-        int baseId = ThreadLocalRandom.current()
-                .nextInt(100_000_000, 600_000_000);
+    void loggedInUserCanCreateAndReadOwnReservation() throws Exception {
+        String email = UUID.randomUUID() + "@example.com";
+        String password = "password123";
 
-        int reservationId = baseId;
-        int studentId = baseId + 1;
-        int equipmentId = baseId + 2;
+        accountService.register(email, password);
 
-        studentRepository.save(
-                new Student(studentId, "TEST-STUDENT-HTTP"));
+        int equipmentId = saveEquipment();
 
-        equipmentRepository.save(
-                new Equipment(equipmentId, "TEST-CAMERA-HTTP"));
+        MvcResult login = mockMvc.perform(post("/login")
+                .with(csrf())
+                .param("email", email)
+                .param("password", password))
+            .andExpect(status().isOk())
+            .andReturn();
 
-        String requestJson = """
-            {
-                "id": %d,
-                "studentId": %d,
-                "equipmentId": %d,
-                "startDate": "2026-10-20",
-                "endDate": "2026-10-22"
-            }
-            """.formatted(reservationId, studentId, equipmentId);
+        MockHttpSession session =
+                (MockHttpSession) login.getRequest().getSession(false);
 
-        mockMvc.perform(
-                post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isCreated())
-                .andExpect(content().string(""));
+        assertNotNull(session);
 
-        mockMvc.perform(get("/reservations/{id}", reservationId).with(user("test@example.com").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(reservationId))
-                .andExpect(jsonPath("$.studentId").value(studentId))
-                .andExpect(jsonPath("$.equipmentId").value(equipmentId))
-                .andExpect(jsonPath("$.startDate").value("2026-10-20"))
-                .andExpect(jsonPath("$.endDate").value("2026-10-22"));
+        mockMvc.perform(post("/reservations")
+                .session(session)
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson(
+                        equipmentId, "2026-11-10", "2026-11-12")))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").isNumber())
+            .andExpect(jsonPath("$.equipmentId").value(equipmentId));
+
+        Long accountId = accountRepository.findByEmail(email)
+                .orElseThrow().getId();
+
+        Reservation saved = reservationRepository
+                .findByAccount_IdOrderByIdDesc(accountId)
+                .get(0);
+
+        mockMvc.perform(get("/reservations/{id}", saved.getId())
+                .session(session))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(saved.getId()))
+            .andExpect(jsonPath("$.startDate").value("2026-11-10"))
+            .andExpect(jsonPath("$.endDate").value("2026-11-12"));
+
+        mockMvc.perform(get("/reservations/my")
+                .session(session))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(saved.getId()))
+            .andExpect(jsonPath("$[0].equipmentId").value(equipmentId));
     }
 
     @Test
-    void duplicateReservationIdReturns409AndPreservesOriginal()
-            throws Exception {
+    void anotherUserCannotReadReservation() throws Exception {
+        String ownerEmail = UUID.randomUUID() + "@example.com";
+        String otherEmail = UUID.randomUUID() + "@example.com";
 
-        int baseId = ThreadLocalRandom.current()
-                .nextInt(100_000_000, 600_000_000);
+        Account owner = accountRepository.save(
+                new Account(ownerEmail, "test-password-hash"));
 
-        int reservationId = baseId;
-        int studentId = baseId + 1;
-        int firstEquipmentId = baseId + 2;
-        int secondEquipmentId = baseId + 3;
+        accountRepository.save(
+                new Account(otherEmail, "test-password-hash"));
 
-        studentRepository.save(
-                new Student(studentId, "TEST-STUDENT"));
+        int equipmentId = saveEquipment();
 
-        equipmentRepository.save(
-                new Equipment(firstEquipmentId, "TEST-CAMERA"));
+        mockMvc.perform(post("/reservations")
+                .with(user(ownerEmail).roles("USER"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson(
+                        equipmentId, "2026-11-10", "2026-11-12")))
+            .andExpect(status().isCreated());
 
-        equipmentRepository.save(
-                new Equipment(secondEquipmentId, "TEST-LAPTOP"));
+        Reservation saved = reservationRepository
+                .findByAccount_IdOrderByIdDesc(owner.getId())
+                .get(0);
 
-        String firstRequest = """
-            {
-                "id": %d,
-                "studentId": %d,
-                "equipmentId": %d,
-                "startDate": "2026-10-20",
-                "endDate": "2026-10-22"
-            }
-            """.formatted(reservationId, studentId, firstEquipmentId);
+        mockMvc.perform(get("/reservations/{id}", saved.getId())
+                .with(user(otherEmail).roles("USER")))
+            .andExpect(status().isForbidden());
 
-        mockMvc.perform(
-                post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(firstRequest))
-                .andExpect(status().isCreated());
-
-        String duplicateRequest = """
-            {
-                "id": %d,
-                "studentId": %d,
-                "equipmentId": %d,
-                "startDate": "2026-10-25",
-                "endDate": "2026-10-27"
-            }
-            """.formatted(reservationId, studentId, secondEquipmentId);
-
-        mockMvc.perform(
-                post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(duplicateRequest))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.message")
-                        .value("이미 존재하는 예약 ID입니다."));
-
-        mockMvc.perform(get("/reservations/{id}", reservationId).with(user("test@example.com").roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.studentId").value(studentId))
-                .andExpect(jsonPath("$.equipmentId").value(firstEquipmentId))
-                .andExpect(jsonPath("$.startDate").value("2026-10-20"))
-                .andExpect(jsonPath("$.endDate").value("2026-10-22"));
+        mockMvc.perform(get("/reservations/my")
+                .with(user(otherEmail).roles("USER")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
     void overlappingReservationReturns409AndAdjacentDatesWork()
             throws Exception {
+        String email = saveAccount();
+        int equipmentId = saveEquipment();
 
-        int baseId = ThreadLocalRandom.current()
-                .nextInt(100_000_000, 600_000_000);
-
-        int studentId = baseId + 1;
-        int equipmentId = baseId + 2;
-        int firstId = baseId + 3;
-        int conflictId = baseId + 4;
-        int nextId = baseId + 5;
-
-        studentRepository.save(new Student(studentId, "TEST-STUDENT"));
-        equipmentRepository.save(new Equipment(equipmentId, "TEST-CAMERA"));
-
-        String firstRequest = requestJson(
-                firstId, studentId, equipmentId,
-                "2026-10-20", "2026-10-22"
-        );
-
-        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
+        mockMvc.perform(post("/reservations")
+                .with(user(email).roles("USER"))
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(firstRequest))
+                .content(requestJson(
+                        equipmentId, "2026-11-10", "2026-11-12")))
             .andExpect(status().isCreated());
 
-        String conflictRequest = requestJson(
-                conflictId, studentId, equipmentId,
-                "2026-10-22", "2026-10-23"
-        );
-
-        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
+        mockMvc.perform(post("/reservations")
+                .with(user(email).roles("USER"))
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(conflictRequest))
+                .content(requestJson(
+                        equipmentId, "2026-11-12", "2026-11-13")))
             .andExpect(status().isConflict())
             .andExpect(jsonPath("$.status").value(409));
 
-        mockMvc.perform(get("/reservations/{id}", conflictId).with(user("test@example.com").roles("USER")))
-            .andExpect(status().isNotFound());
-
-        mockMvc.perform(get("/reservations/{id}", firstId).with(user("test@example.com").roles("USER")))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.startDate").value("2026-10-20"))
-            .andExpect(jsonPath("$.endDate").value("2026-10-22"));
-
-        String nextRequest = requestJson(
-                nextId, studentId, equipmentId,
-                "2026-10-23", "2026-10-24"
-        );
-
-        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
+        mockMvc.perform(post("/reservations")
+                .with(user(email).roles("USER"))
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(nextRequest))
+                .content(requestJson(
+                        equipmentId, "2026-11-13", "2026-11-14")))
             .andExpect(status().isCreated());
+
+        Long accountId = accountRepository.findByEmail(email)
+                .orElseThrow().getId();
+
+        assertEquals(2, reservationRepository
+                .findByAccount_IdOrderByIdDesc(accountId).size());
     }
 
     @Test
-    void missingEquipmentReturns404AndDoesNotCreateReservation() throws Exception {
-        int baseId = ThreadLocalRandom.current()
-                .nextInt(100_000_000, 600_000_000);
-
-        int studentId = baseId + 1;
-        int equipmentId = baseId + 2;
-        int reservationId = baseId + 3;
-
-        studentRepository.save(new Student(studentId, "TEST-STUDENT"));
+    void missingEquipmentReturns404AndDoesNotCreateReservation()
+            throws Exception {
+        String email = saveAccount();
+        int equipmentId = ThreadLocalRandom.current()
+                .nextInt(100_000_000, Integer.MAX_VALUE);
 
         assertFalse(equipmentRepository.existsById(equipmentId));
 
-        String requestJson = requestJson(
-                reservationId, studentId, equipmentId,
-                "2026-10-20", "2026-10-22");
+        mockMvc.perform(post("/reservations")
+                .with(user(email).roles("USER"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson(
+                        equipmentId, "2026-11-10", "2026-11-12")))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.status").value(404));
 
-        mockMvc.perform(post("/reservations").with(user("test@example.com").roles("USER")).with(csrf())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestJson))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.message")
-                        .value("기자재를 찾을 수 없습니다. ID: " + equipmentId));
+        Long accountId = accountRepository.findByEmail(email)
+                .orElseThrow().getId();
 
-        mockMvc.perform(get("/reservations/{id}", reservationId).with(user("test@example.com").roles("USER")))
-                .andExpect(status().isNotFound());
+        assertEquals(0, reservationRepository
+                .findByAccount_IdOrderByIdDesc(accountId).size());
+    }
+
+    @Test
+    void reversedDatesReturn400() throws Exception {
+        String email = saveAccount();
+        int equipmentId = saveEquipment();
+
+        mockMvc.perform(post("/reservations")
+                .with(user(email).roles("USER"))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson(
+                        equipmentId, "2026-11-15", "2026-11-10")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400));
+    }
+
+    private String saveAccount() {
+        String email = UUID.randomUUID() + "@example.com";
+        accountRepository.save(
+                new Account(email, "test-password-hash"));
+        return email;
+    }
+
+    private int saveEquipment() {
+        int equipmentId = ThreadLocalRandom.current()
+                .nextInt(100_000_000, Integer.MAX_VALUE);
+
+        equipmentRepository.save(
+                new Equipment(equipmentId, "TEST-CAMERA"));
+
+        return equipmentId;
     }
 
     private String requestJson(
-            int id, int studentId, int equipmentId,
-            String startDate, String endDate) {
-
+            int equipmentId, String startDate, String endDate) {
         return """
             {
-                "id": %d,
-                "studentId": %d,
                 "equipmentId": %d,
                 "startDate": "%s",
                 "endDate": "%s"
             }
-            """.formatted(
-                id, studentId, equipmentId, startDate, endDate
-            );
+            """.formatted(equipmentId, startDate, endDate);
     }
 }
