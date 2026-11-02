@@ -11,6 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 @Entity
 @Table(name = "reservations")
@@ -34,15 +36,19 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDate endDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ReservationStatus status;
+
     protected Reservation() {
     }
 
-    public Reservation(Account account, Equipment equipment,
-                       LocalDate startDate, LocalDate endDate) {
+    public Reservation(Account account, Equipment equipment, LocalDate startDate, LocalDate endDate) {
         this.account = account;
         this.equipment = equipment;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.status = ReservationStatus.ACTIVE;
     }
 
     public Long getId() {
@@ -63,5 +69,13 @@ public class Reservation {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public ReservationStatus getStatus() {
+        return status;
+    }
+
+    public void cancel() {
+        this.status = ReservationStatus.CANCELED;
     }
 }
