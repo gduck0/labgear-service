@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import com.gduck0.labgear.dto.ReservationCreateRequest;
 import com.gduck0.labgear.dto.ReservationResponse;
@@ -65,11 +66,21 @@ public class ReservationController {
         return toResponse(reservation);
     }
 
+    @PatchMapping("/reservations/{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelReservation(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        reservationService.cancelReservation(id, authentication.getName());
+    }
+
     private ReservationResponse toResponse(Reservation reservation) {
         return new ReservationResponse(
                 reservation.getId(),
                 reservation.getEquipment().getId(),
                 reservation.getStartDate(),
-                reservation.getEndDate());
+                reservation.getEndDate(),
+                reservation.getStatus());
     }
 }
