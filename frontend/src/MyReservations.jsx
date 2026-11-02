@@ -114,8 +114,8 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                     <CalendarDays size={16}/>
                     <span>{formatDate(reservation.startDate)} – {formatDate(reservation.endDate)}</span>
                   </div>
-                  {active && <div className="booking-row-actions">
-                    {!confirming && (
+                  <div className="booking-row-actions">
+                    {active && !confirming && (
                       <button
                         type="button"
                         className="button booking-cancel-button"
@@ -130,7 +130,7 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                         예약 취소
                       </button>
                     )}
-                    {confirming && (
+                    {active && confirming && (
                       <div className="booking-cancel-confirm">
                         <p>이 예약을 취소할까요?</p>
                         <div className="booking-confirm-buttons">
@@ -156,7 +156,7 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                         </div>
                       </div>
                     )}
-                  </div>}
+                  </div>
                 </article>
               );
             })}
