@@ -1,8 +1,8 @@
-
 package com.gduck0.labgear.dto;
 
-import java.time.LocalDate;
 import com.gduck0.labgear.entity.ReservationStatus;
+
+import java.time.LocalDate;
 
 public class ReservationResponse {
 
@@ -12,7 +12,12 @@ public class ReservationResponse {
     private final LocalDate endDate;
     private final ReservationStatus status;
 
-    public ReservationResponse( Long id, int equipmentId, LocalDate startDate, LocalDate endDate, ReservationStatus status) {
+    public ReservationResponse(
+            Long id,
+            int equipmentId,
+            LocalDate startDate,
+            LocalDate endDate,
+            ReservationStatus status) {
         this.id = id;
         this.equipmentId = equipmentId;
         this.startDate = startDate;

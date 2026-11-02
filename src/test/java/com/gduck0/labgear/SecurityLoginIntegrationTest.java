@@ -1,4 +1,3 @@
-
 package com.gduck0.labgear;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.UUID;
+import com.gduck0.labgear.service.AccountService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,18 +22,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gduck0.labgear.service.AccountService;
+import java.util.UUID;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class SecurityLoginIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private AccountService accountService;
+    @Autowired private AccountService accountService;
 
     @Test
     void successfulLoginKeepsAuthenticationAcrossRequests() throws Exception {
@@ -43,16 +40,17 @@ class SecurityLoginIntegrationTest {
 
         accountService.register(email, password);
 
-        MvcResult loginResult = mockMvc.perform(post("/login")
-                .with(csrf())
-                .param("email", email)
-                .param("password", password))
-                .andExpect(status().isOk())
-                .andExpect(authenticated().withUsername(email))
-                .andReturn();
+        MvcResult loginResult =
+                mockMvc.perform(
+                                post("/login")
+                                        .with(csrf())
+                                        .param("email", email)
+                                        .param("password", password))
+                        .andExpect(status().isOk())
+                        .andExpect(authenticated().withUsername(email))
+                        .andReturn();
 
-        MockHttpSession session =
-                (MockHttpSession) loginResult.getRequest().getSession(false);
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
 
         assertNotNull(session);
 
@@ -67,10 +65,11 @@ class SecurityLoginIntegrationTest {
 
         accountService.register(email, "correctPassword123");
 
-        mockMvc.perform(post("/login")
-                .with(csrf())
-                .param("email", email)
-                .param("password", "wrongPassword456"))
+        mockMvc.perform(
+                        post("/login")
+                                .with(csrf())
+                                .param("email", email)
+                                .param("password", "wrongPassword456"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(unauthenticated());
     }
@@ -79,10 +78,11 @@ class SecurityLoginIntegrationTest {
     void unknownEmailIsRejected() throws Exception {
         String email = "missing-" + UUID.randomUUID() + "@example.com";
 
-        mockMvc.perform(post("/login")
-                .with(csrf())
-                .param("email", email)
-                .param("password", "password123"))
+        mockMvc.perform(
+                        post("/login")
+                                .with(csrf())
+                                .param("email", email)
+                                .param("password", "password123"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(unauthenticated());
     }
@@ -101,22 +101,21 @@ class SecurityLoginIntegrationTest {
 
         accountService.register(email, password);
 
-        MvcResult loginResult = mockMvc.perform(post("/login")
-                .with(csrf())
-                .param("email", email)
-                .param("password", password))
-                .andExpect(status().isOk())
-                .andExpect(authenticated())
-                .andReturn();
+        MvcResult loginResult =
+                mockMvc.perform(
+                                post("/login")
+                                        .with(csrf())
+                                        .param("email", email)
+                                        .param("password", password))
+                        .andExpect(status().isOk())
+                        .andExpect(authenticated())
+                        .andReturn();
 
-        MockHttpSession session =
-                (MockHttpSession) loginResult.getRequest().getSession(false);
+        MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession(false);
 
         assertNotNull(session);
 
-        mockMvc.perform(post("/logout")
-                .session(session)
-                .with(csrf()))
+        mockMvc.perform(post("/logout").session(session).with(csrf()))
                 .andExpect(status().isNoContent());
 
         assertTrue(session.isInvalid());

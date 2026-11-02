@@ -1,22 +1,22 @@
-
 package com.gduck0.labgear.repository;
-
-import java.time.LocalDate;
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
-import java.util.Optional;
-import jakarta.persistence.LockModeType;
-import org.springframework.data.jpa.repository.Lock;
 
 import com.gduck0.labgear.entity.Reservation;
 
+import jakarta.persistence.LockModeType;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    @Query("""
+    @Query(
+            """
             SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END
             FROM Reservation r
             WHERE r.equipment.id = :equipmentId

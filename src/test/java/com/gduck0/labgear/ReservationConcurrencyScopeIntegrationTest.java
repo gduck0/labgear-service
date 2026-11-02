@@ -1,20 +1,6 @@
-
 package com.gduck0.labgear;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.*;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.gduck0.labgear.entity.Account;
 import com.gduck0.labgear.entity.Equipment;
@@ -24,23 +10,31 @@ import com.gduck0.labgear.repository.EquipmentRepository;
 import com.gduck0.labgear.repository.ReservationRepository;
 import com.gduck0.labgear.service.ReservationService;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.*;
+
 @SpringBootTest
 class ReservationConcurrencyScopeIntegrationTest {
 
-    @Autowired
-    private ReservationService reservationService;
+    @Autowired private ReservationService reservationService;
 
-    @Autowired
-    private AccountRepository accountRepository;
+    @Autowired private AccountRepository accountRepository;
 
-    @Autowired
-    private EquipmentRepository equipmentRepository;
+    @Autowired private EquipmentRepository equipmentRepository;
 
-    @Autowired
-    private ReservationRepository reservationRepository;
+    @Autowired private ReservationRepository reservationRepository;
 
-    @Autowired
-    private PlatformTransactionManager transactionManager;
+    @Autowired private PlatformTransactionManager transactionManager;
 
     private final List<Long> accountIds = new ArrayList<>();
     private final List<Integer> equipmentIds = new ArrayList<>();
@@ -62,8 +56,7 @@ class ReservationConcurrencyScopeIntegrationTest {
     }
 
     @Test
-    void sameEquipmentWithDifferentPeriodsAllowsBothReservations()
-            throws Exception {
+    void sameEquipmentWithDifferentPeriodsAllowsBothReservations() throws Exception {
 
         int equipmentId = createEquipment();
         String userA = createAccount();
@@ -74,15 +67,25 @@ class ReservationConcurrencyScopeIntegrationTest {
         CountDownLatch start = new CountDownLatch(1);
 
         try {
-            Future<Reservation> first = submitReservation(
-                    executor, ready, start, userA, equipmentId,
-                    LocalDate.of(2026, 11, 10),
-                    LocalDate.of(2026, 11, 12));
+            Future<Reservation> first =
+                    submitReservation(
+                            executor,
+                            ready,
+                            start,
+                            userA,
+                            equipmentId,
+                            LocalDate.of(2026, 11, 10),
+                            LocalDate.of(2026, 11, 12));
 
-            Future<Reservation> second = submitReservation(
-                    executor, ready, start, userB, equipmentId,
-                    LocalDate.of(2026, 11, 13),
-                    LocalDate.of(2026, 11, 15));
+            Future<Reservation> second =
+                    submitReservation(
+                            executor,
+                            ready,
+                            start,
+                            userB,
+                            equipmentId,
+                            LocalDate.of(2026, 11, 13),
+                            LocalDate.of(2026, 11, 15));
 
             assertTrue(ready.await(10, TimeUnit.SECONDS));
             start.countDown();
@@ -99,8 +102,7 @@ class ReservationConcurrencyScopeIntegrationTest {
     }
 
     @Test
-    void otherEquipmentAndNormalReadProceedWhileOneEquipmentIsLocked()
-            throws Exception {
+    void otherEquipmentAndNormalReadProceedWhileOneEquipmentIsLocked() throws Exception {
 
         int lockedEquipmentId = createEquipment();
         int otherEquipmentId = createEquipment();
@@ -112,49 +114,50 @@ class ReservationConcurrencyScopeIntegrationTest {
         ExecutorService executor = Executors.newFixedThreadPool(3);
 
         try {
-            Future<?> lockHolder = executor.submit(() -> {
-                TransactionTemplate transaction =
-                        new TransactionTemplate(transactionManager);
+            Future<?> lockHolder =
+                    executor.submit(
+                            () -> {
+                                TransactionTemplate transaction =
+                                        new TransactionTemplate(transactionManager);
 
-                transaction.executeWithoutResult(status -> {
-                    equipmentRepository
-                            .findByIdForUpdate(lockedEquipmentId)
-                            .orElseThrow();
+                                transaction.executeWithoutResult(
+                                        status -> {
+                                            equipmentRepository
+                                                    .findByIdForUpdate(lockedEquipmentId)
+                                                    .orElseThrow();
 
-                    locked.countDown();
+                                            locked.countDown();
 
-                    try {
-                        if (!release.await(20, TimeUnit.SECONDS)) {
-                            throw new IllegalStateException("Lock hold timed out");
-                        }
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new IllegalStateException(e);
-                    }
-                });
-            });
+                                            try {
+                                                if (!release.await(20, TimeUnit.SECONDS)) {
+                                                    throw new IllegalStateException(
+                                                            "Lock hold timed out");
+                                                }
+                                            } catch (InterruptedException e) {
+                                                Thread.currentThread().interrupt();
+                                                throw new IllegalStateException(e);
+                                            }
+                                        });
+                            });
 
             assertTrue(locked.await(10, TimeUnit.SECONDS));
 
             Future<Reservation> otherReservation =
-                    executor.submit(() ->
-                            reservationService.createReservation(
-                                    email,
-                                    otherEquipmentId,
-                                    LocalDate.of(2026, 11, 10),
-                                    LocalDate.of(2026, 11, 12)));
+                    executor.submit(
+                            () ->
+                                    reservationService.createReservation(
+                                            email,
+                                            otherEquipmentId,
+                                            LocalDate.of(2026, 11, 10),
+                                            LocalDate.of(2026, 11, 12)));
 
             Future<Equipment> normalRead =
-                    executor.submit(() ->
-                            equipmentRepository
-                                    .findById(lockedEquipmentId)
-                                    .orElseThrow());
+                    executor.submit(
+                            () -> equipmentRepository.findById(lockedEquipmentId).orElseThrow());
 
-            Reservation saved = otherReservation.get(
-                    10, TimeUnit.SECONDS);
+            Reservation saved = otherReservation.get(10, TimeUnit.SECONDS);
 
-            Equipment equipment = normalRead.get(
-                    10, TimeUnit.SECONDS);
+            Equipment equipment = normalRead.get(10, TimeUnit.SECONDS);
 
             assertNotNull(saved.getId());
             assertEquals(lockedEquipmentId, equipment.getId());
@@ -178,23 +181,23 @@ class ReservationConcurrencyScopeIntegrationTest {
             LocalDate startDate,
             LocalDate endDate) {
 
-        return executor.submit(() -> {
-            ready.countDown();
+        return executor.submit(
+                () -> {
+                    ready.countDown();
 
-            if (!start.await(10, TimeUnit.SECONDS)) {
-                throw new IllegalStateException("Start timed out");
-            }
+                    if (!start.await(10, TimeUnit.SECONDS)) {
+                        throw new IllegalStateException("Start timed out");
+                    }
 
-            return reservationService.createReservation(
-                    email, equipmentId, startDate, endDate);
-        });
+                    return reservationService.createReservation(
+                            email, equipmentId, startDate, endDate);
+                });
     }
 
     private String createAccount() {
         String email = UUID.randomUUID() + "@example.com";
 
-        Account account = accountRepository.save(
-                new Account(email, "test-password-hash"));
+        Account account = accountRepository.save(new Account(email, "test-password-hash"));
 
         accountIds.add(account.getId());
         return email;
@@ -204,13 +207,10 @@ class ReservationConcurrencyScopeIntegrationTest {
         int id;
 
         do {
-            id = ThreadLocalRandom.current()
-                    .nextInt(100_000_000, 2_000_000_000);
-        } while (equipmentIds.contains(id)
-                || equipmentRepository.existsById(id));
+            id = ThreadLocalRandom.current().nextInt(100_000_000, 2_000_000_000);
+        } while (equipmentIds.contains(id) || equipmentRepository.existsById(id));
 
-        equipmentRepository.save(
-                new Equipment(id, "TEST-EQUIPMENT"));
+        equipmentRepository.save(new Equipment(id, "TEST-EQUIPMENT"));
 
         equipmentIds.add(id);
         return id;

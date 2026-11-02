@@ -1,15 +1,15 @@
 package com.gduck0.labgear.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Column;
 
 @Entity
 @Table(name = "equipment")
 public class Equipment {
-    @Id
-    private int id;
+    @Id private int id;
+
     @Column(nullable = false, length = 100)
     private String name;
 
@@ -18,11 +18,10 @@ public class Equipment {
         this.name = name;
     }
 
-    protected Equipment() {
-    }
+    protected Equipment() {}
 
     public int getId() {
-        return this.id;    
+        return this.id;
     }
 
     public String getName() {

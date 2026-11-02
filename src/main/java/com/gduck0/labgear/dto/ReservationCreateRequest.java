@@ -1,25 +1,20 @@
-
 package com.gduck0.labgear.dto;
-
-import java.time.LocalDate;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
+import java.time.LocalDate;
+
 public class ReservationCreateRequest {
 
-    @Positive
-    private int equipmentId;
+    @Positive private int equipmentId;
 
-    @NotNull
-    private LocalDate startDate;
+    @NotNull private LocalDate startDate;
 
-    @NotNull
-    private LocalDate endDate;
+    @NotNull private LocalDate endDate;
 
-    public ReservationCreateRequest() {
-    }
+    public ReservationCreateRequest() {}
 
     @AssertTrue
     public boolean isValidDateRange() {

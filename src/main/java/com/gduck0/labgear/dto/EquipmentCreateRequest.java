@@ -1,23 +1,20 @@
 package com.gduck0.labgear.dto;
 
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 
 public class EquipmentCreateRequest {
 
-    @Positive
-    private int id;
+    @Positive private int id;
 
-    @NotBlank
-    private String name;
+    @NotBlank private String name;
 
     public EquipmentCreateRequest(int id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    protected EquipmentCreateRequest() {
-    }
+    protected EquipmentCreateRequest() {}
 
     public int getId() {
         return id;
