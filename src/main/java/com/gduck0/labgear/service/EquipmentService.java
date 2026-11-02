@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.repository.EquipmentRepository;
 import com.gduck0.labgear.repository.ReservationRepository;
@@ -15,21 +17,24 @@ import com.gduck0.labgear.exception.ResourceNotFoundException;
 public class EquipmentService {
     private final EquipmentRepository equipmentRepository;
     private final ReservationRepository reservationRepository;
+    private final EntityManager entityManager;
 
-    public EquipmentService(EquipmentRepository equipmentRepository, ReservationRepository reservationRepository) {
+    public EquipmentService(EquipmentRepository equipmentRepository, ReservationRepository reservationRepository, EntityManager entityManager) {
         this.equipmentRepository = equipmentRepository;
         this.reservationRepository = reservationRepository;
+        this.entityManager = entityManager;
     }
 
     public List<Equipment> getAllEquipment() {
         return equipmentRepository.findAll();
     }
 
+    @Transactional
     public void createEquipment(Equipment item) {
         if(equipmentRepository.existsById(item.getId())) {
             throw new ResourceConflictException("이미 존재하는 기자재 ID입니다.");
         }
-        equipmentRepository.save(item);
+        entityManager.persist(item);
     }
 
     public Equipment getEquipment(int id) {
