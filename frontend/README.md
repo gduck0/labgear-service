@@ -6,11 +6,11 @@ React + Vite로 구현한 LabGear 기자재 예약 화면입니다. Spring Boot 
 
 - 기자재 목록·상세 조회, 화면 내 검색 및 정렬 (`GET /equipment`, `GET /equipment/{id}`)
 - 관리자 전용 기자재 등록·이름 변경·삭제 (`POST /equipment`, `PATCH /equipment/{id}/name`, `DELETE /equipment/{id}`)
-- 로그인한 사용자의 예약 생성·내 예약 목록·본인 예약 단건 조회
+- 로그인한 사용자의 예약 생성·내 예약 목록·본인 예약 단건 조회, 예약 상태 표시 및 본인 예약 취소
 - 회원가입, 세션 기반 로그인·로그아웃 및 로그인 상태 확인
 - 날짜 범위 검증, API 오류 안내 및 기자재 삭제 확인
 
-현재 예약 취소 기능은 지원하지 않습니다.
+예약은 상태(`ACTIVE` / `CANCELED`)로 관리하며, 취소해도 기록은 유지됩니다. 활성 예약에서 취소를 확인하면 목록을 새로 조회합니다.
 
 ## 로컬 실행
 
@@ -37,6 +37,7 @@ Vite 개발 서버는 `/api` 요청을 `http://127.0.0.1:8080`으로 전달하�
 - `POST /reservations`: `{ "equipmentId": 1, "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD" }`로 예약 생성. 성공 시 HTTP 201과 예약 정보를 담은 JSON 반환
 - `GET /reservations/my`: 로그인한 사용자의 예약 목록
 - `GET /reservations/{id}`: 본인 예약 단건 조회 (다른 사용자 예약은 접근 불가)
+- `PATCH /reservations/{id}/cancel`: 본인 활성 예약 취소. 성공 시 HTTP 204(응답 본문 없음), 중복 취소 409, 타인 예약 403, 없는 예약 404
 
 기자재 조회는 로그인 없이 가능하며, 예약은 로그인 후 이용합니다. 기자재 변경은 `ADMIN` 역할이 필요합니다. 요청에는 세션 쿠키와 CSRF 토큰을 사용합니다.
 
