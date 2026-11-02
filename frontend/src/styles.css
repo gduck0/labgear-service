@@ -55,8 +55,8 @@ main{flex:1}
 .hero-steps-head strong,.hero-steps-head small{display:block}
 .hero-steps-head strong{font-size:1.04rem}
 .hero-steps-head small{color:#8a96a5;font-size:.75rem;margin-top:4px}
-.step{display:flex;align-items:center;gap:18px;padding-top:19px}
-.step>span{color:#8aa2c6;font-size:.85rem;font-weight:800}
+.step{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:18px;padding-top:19px}
+.step>span{color:#8aa2c6;font-size:.85rem;font-weight:800;font-variant-numeric:tabular-nums}
 .step strong,.step small{display:block}
 .step strong{font-size:.88rem;margin-bottom:4px}
 .step small{font-size:.76rem;color:#8190a3}
