@@ -1,4 +1,3 @@
-
 package com.gduck0.labgear.service;
 
 import java.time.LocalDate;
@@ -6,6 +5,8 @@ import java.util.List;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gduck0.labgear.entity.Account;
 import com.gduck0.labgear.entity.Equipment;
@@ -32,17 +33,19 @@ public class ReservationService {
         this.reservationRepository = reservationRepository;
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Reservation createReservation(
             String email, int equipmentId,
             LocalDate startDate, LocalDate endDate) {
 
+        Equipment equipment = equipmentRepository
+                .findByIdForUpdate(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "기자재를 찾을 수 없습니다. ID: " + equipmentId));
+
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "계정을 찾을 수 없습니다."));
-
-        Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "기자재를 찾을 수 없습니다. ID: " + equipmentId));
 
         if (reservationRepository.existsOverlappingReservation(
                 equipmentId, startDate, endDate)) {
