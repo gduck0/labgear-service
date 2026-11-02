@@ -102,7 +102,12 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                 >
                   <div className="booking-device-icon"><Package size={23}/></div>
                   <div className="booking-row-main">
-                    <strong>{equipment.find((item) => item.id === reservation.equipmentId)?.name || `기자재 #${reservation.equipmentId}`}</strong>
+                    <div className="booking-device-heading">
+                      <strong>{equipment.find((item) => item.id === reservation.equipmentId)?.name || `기자재 #${reservation.equipmentId}`}</strong>
+                      <span className={`reservation-status ${active ? 'active' : 'canceled'}`}>
+                        {active ? '예약 확정' : canceled ? '취소됨' : '상태 확인 필요'}
+                      </span>
+                    </div>
                     <span className="muted">기자재 #{reservation.equipmentId} · 예약 #{reservation.id}</span>
                   </div>
                   <div className="booking-period">
@@ -110,13 +115,10 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                     <span>{formatDate(reservation.startDate)} – {formatDate(reservation.endDate)}</span>
                   </div>
                   <div className="booking-row-actions">
-                    <span className={`reservation-status ${active ? 'active' : 'canceled'}`}>
-                      {active ? '예약 중' : canceled ? '취소됨' : '상태 확인 필요'}
-                    </span>
                     {active && !confirming && (
                       <button
                         type="button"
-                        className="button danger-outline booking-cancel-button"
+                        className="button booking-cancel-button"
                         disabled={cancelingId !== null}
                         onClick={() => {
                           setConfirmId(reservation.id);

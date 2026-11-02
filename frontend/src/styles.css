@@ -15,15 +15,15 @@ main{flex:1}
 .eyebrow{font-size:.75rem;color:#486b9e;letter-spacing:.12em;font-weight:800;text-transform:uppercase}
 .eyebrow-dot{display:inline-block;width:7px;height:7px;background:#418af5;border-radius:50%;margin-right:7px;vertical-align:middle}
 .site-header{background:#fff;border-bottom:1px solid #e8edf4;position:relative;z-index:10}
-.header-inner{display:flex;align-items:center;gap:48px;min-height:77px}
+.header-inner{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:24px;min-height:77px}
 .brand{display:inline-flex;align-items:center;gap:10px;font-size:1.43rem;font-weight:800;letter-spacing:-.06em;border:0;background:none;padding:0;white-space:nowrap}
 .brand-symbol{display:grid;place-items:center;width:35px;height:35px;background:#225bc6;color:#fff;border-radius:11px}
 .brand-period{color:#4384eb}
 .main-nav{display:flex;gap:29px;align-items:stretch;align-self:stretch}
-.main-nav button{position:relative;border:0;background:transparent;padding:0 2px;color:#687387;font-size:.91rem;font-weight:600;white-space:nowrap}
+.main-nav button{position:relative;display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0 2px;color:#687387;font-size:.91rem;font-weight:600;white-space:nowrap}
 .main-nav button:hover,.main-nav button.active{color:#235cc7}
 .main-nav button.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:3px;border-radius:8px;background:#306fd9}
-.account-actions{margin-left:auto;min-width:0}
+.account-actions{justify-self:end;min-width:0}
 .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 17px;border-radius:11px;border:1px solid transparent;font-size:.91rem;font-weight:700;white-space:nowrap;transition:background .15s,transform .15s,border-color .15s}
 .button:not(:disabled):hover{transform:translateY(-1px)}
 .button.primary{background:#255ecb;color:white;border-color:#255ecb;box-shadow:0 5px 14px rgba(43,100,202,.14)}
@@ -36,6 +36,8 @@ main{flex:1}
 .button.danger-outline:hover{background:#fff3f3}
 .button.full{width:100%}
 .login-button{background:#eef4ff;color:#235fc9;border-color:#dbe8fc}
+.signout-button{gap:7px;padding:9px 11px;font-size:.8rem}
+.signout-button svg{flex-shrink:0}
 .signed-in{display:flex;align-items:center;gap:9px;min-width:0}
 .account-initial{display:grid;place-items:center;border-radius:50%;width:30px;height:30px;background:#e4eeff;color:#255ecb;font-size:.79rem;font-weight:800;flex-shrink:0}
 .account-email{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#4e5a6d;font-size:.8rem}
@@ -53,8 +55,8 @@ main{flex:1}
 .hero-steps-head strong,.hero-steps-head small{display:block}
 .hero-steps-head strong{font-size:1.04rem}
 .hero-steps-head small{color:#8a96a5;font-size:.75rem;margin-top:4px}
-.step{display:flex;align-items:center;gap:18px;padding-top:19px}
-.step>span{color:#8aa2c6;font-size:.85rem;font-weight:800}
+.step{display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:18px;padding-top:19px}
+.step>span{color:#8aa2c6;font-size:.85rem;font-weight:800;font-variant-numeric:tabular-nums}
 .step strong,.step small{display:block}
 .step strong{font-size:.88rem;margin-bottom:4px}
 .step small{font-size:.76rem;color:#8190a3}
@@ -79,7 +81,7 @@ main{flex:1}
 .equipment-card:nth-child(3n+3) .equipment-art{background:linear-gradient(135deg,#eff7f5,#e8f0f1)}
 .equipment-mark{position:absolute;right:15px;bottom:11px;font-size:.58rem;font-weight:800;letter-spacing:.15em;color:#b2c0d0}
 .equipment-card-content{padding:20px}
-.equipment-id{font-size:.68rem;color:#8191a9;font-weight:800;letter-spacing:.08em}
+.equipment-id{font-size:.72rem;color:#8191a9;font-weight:600;letter-spacing:0}
 .equipment-card-content h3{font-size:1.1rem;letter-spacing:-.03em;line-height:1.5;min-height:3.1em;margin:8px 0 15px;word-break:keep-all;overflow-wrap:anywhere}
 .reserve-link{border:0;background:transparent;padding:5px 0;color:#2661c9;display:flex;align-items:center;gap:8px;font-weight:800;font-size:.88rem}
 .reserve-link:hover{gap:12px}
@@ -94,15 +96,21 @@ main{flex:1}
 .booking-row{border:1px solid #e0e8f1;background:#fff;border-radius:15px;padding:20px;display:flex;align-items:center;gap:19px}
 .booking-device-icon{display:grid;place-items:center;width:55px;height:55px;border-radius:14px;background:#edf4ff;color:#4778c1;flex-shrink:0}
 .booking-row-main{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
-.booking-row-main strong{font-size:1rem}.booking-row-main span{font-size:.81rem}
+.booking-row-main strong{font-size:1rem}
+.booking-row-main>span{font-size:.81rem}
+.booking-device-heading{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.booking-device-heading strong{overflow-wrap:anywhere}
+.booking-device-heading .reservation-status{font-size:.78rem}
 .booking-period{display:flex;align-items:center;gap:9px;font-size:.88rem;font-weight:600;color:#4a5c76;white-space:nowrap}
 .list-footnote{font-size:.8rem;color:#8794a6;margin-top:20px}
 .booking-row.is-canceled{background:#fcfdff}
-.booking-row-actions{display:flex;flex-direction:column;align-items:flex-end;gap:9px;min-width:126px}
+.booking-row-actions{display:flex;flex:0 0 170px;flex-direction:column;align-items:flex-end;gap:9px;min-width:0}
 .reservation-status{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:.76rem;font-weight:700;white-space:nowrap}
 .reservation-status.active{background:#eaf2ff;color:#2c5daa}
 .reservation-status.canceled{background:#eef0f3;color:#657184}
-.booking-cancel-button,.booking-confirm-buttons .button{padding:8px 11px;font-size:.79rem}
+.booking-cancel-button{background:#fff;border:1px solid #d7dfe9;color:#5d6b7f;padding:8px 12px;font-size:.79rem;font-weight:600}
+.booking-cancel-button:hover{background:#f4f6f9;border-color:#b6c3d4;color:#43536a}
+.booking-confirm-buttons .button{padding:8px 11px;font-size:.79rem}
 .booking-cancel-confirm{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .booking-cancel-confirm p{margin:0;font-size:.81rem;color:#8e3e47;font-weight:600}
 .booking-confirm-buttons{display:flex;gap:7px}
@@ -149,7 +157,52 @@ main{flex:1}
 .footer-inner{padding-top:25px;padding-bottom:25px;display:flex;justify-content:space-between;color:#97a2b2;font-size:.76rem;gap:20px}
 .toast{position:fixed;right:24px;bottom:24px;max-width:min(430px,calc(100vw - 48px));padding:16px 44px 16px 19px;background:#20344e;color:#fff;border-radius:12px;z-index:90;box-shadow:0 12px 35px rgba(20,35,64,.22);font-size:.87rem;line-height:1.6}
 .toast button{position:absolute;right:11px;top:11px;border:0;background:transparent;color:#c9d7e7;cursor:pointer}
-@media(max-width:950px){.header-inner{gap:23px}.account-email{display:none}.hero-grid{gap:25px}.equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:690px){.container{padding-left:18px;padding-right:18px}.header-inner{min-height:70px;flex-wrap:wrap;gap:6px 18px;padding-top:11px;padding-bottom:0}.brand{font-size:1.18rem}.brand-symbol{width:32px;height:32px}.account-actions{margin-left:auto}.main-nav{order:3;flex-basis:100%;height:44px;gap:23px}.main-nav button{font-size:.83rem}.hero-grid{grid-template-columns:1fr;padding-top:49px;padding-bottom:48px;gap:32px}.hero-copy h1{font-size:2.45rem}.hero-copy>p{font-size:.9rem}.desktop-only{display:none}.hero-steps{padding:18px 21px}.page-section{padding-top:42px;padding-bottom:62px}.section-top{align-items:start}.section-top .button{font-size:0;gap:0;padding:10px}.section-top .button svg{font-size:initial}.equipment-grid{gap:13px}.equipment-art{height:119px}.equipment-card-content{padding:15px}.equipment-card-content h3{font-size:.94rem}.sort-box{padding:0 9px}.sort-box>svg:first-child{display:none}.booking-row{flex-wrap:wrap;gap:12px}.booking-row-main{flex:1}.booking-period{margin-left:67px;width:100%;font-size:.82rem}.booking-row-actions{margin-left:67px;align-items:flex-start;width:calc(100% - 67px)}.booking-cancel-confirm{align-items:flex-start}.admin-grid{grid-template-columns:1fr}.modal{padding:26px}.footer-inner{flex-wrap:wrap;gap:7px}}
-@media(max-width:390px){.equipment-grid{grid-template-columns:1fr}.equipment-art{height:130px}.equipment-card-content h3{min-height:auto}.hero-copy h1{font-size:2.1rem}.date-pair{grid-template-columns:1fr}.header-inner{gap:4px 12px}}
+.toast.error{background:#883c45}
+@media(max-width:950px){
+  .header-inner{gap:16px}
+  .account-email{display:none}
+  .hero-grid{gap:25px}
+  .equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:690px){
+  .container{padding-left:18px;padding-right:18px}
+  .header-inner{min-height:0;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:6px;padding-top:11px}
+  .brand{font-size:1.18rem}
+  .brand-symbol{width:32px;height:32px}
+  .signout-button{padding:8px 10px;font-size:.79rem}
+  .main-nav{grid-column:1/-1;grid-row:2;justify-self:stretch;justify-content:center;min-width:0;height:44px;gap:23px}
+  .main-nav button{font-size:.83rem}
+  .hero-grid{grid-template-columns:1fr;padding-top:49px;padding-bottom:48px;gap:32px}
+  .hero-copy h1{font-size:2.45rem}
+  .hero-copy>p{font-size:.9rem}
+  .desktop-only{display:none}
+  .hero-steps{padding:18px 21px}
+  .page-section{padding-top:42px;padding-bottom:62px}
+  .section-top{align-items:flex-start;flex-wrap:wrap}
+  .section-top .button{font-size:.84rem;gap:7px;padding:10px 12px}
+  .equipment-grid{gap:13px}
+  .equipment-art{height:119px}
+  .equipment-card-content{padding:15px}
+  .equipment-card-content h3{font-size:.94rem}
+  .sort-box{padding:0 9px}
+  .sort-box>svg:first-child{display:none}
+  .booking-row{flex-wrap:wrap;gap:12px}
+  .booking-row-main{flex:1}
+  .booking-period{margin-left:67px;width:calc(100% - 67px);font-size:.82rem;white-space:normal;flex-wrap:wrap}
+  .booking-period span{overflow-wrap:anywhere}
+  .booking-row-actions{margin-left:67px;align-items:flex-start;width:calc(100% - 67px);flex:1 1 calc(100% - 67px)}
+  .booking-row-actions:empty{display:none}
+  .booking-cancel-confirm{align-items:flex-start}
+  .admin-grid{grid-template-columns:1fr}
+  .modal{padding:26px}
+  .footer-inner{flex-wrap:wrap;gap:7px}
+}
+@media(max-width:390px){
+  .equipment-grid{grid-template-columns:1fr}
+  .equipment-art{height:130px}
+  .equipment-card-content h3{min-height:auto}
+  .hero-copy h1{font-size:2.1rem}
+  .date-pair{grid-template-columns:1fr}
+  .header-inner{column-gap:8px}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
