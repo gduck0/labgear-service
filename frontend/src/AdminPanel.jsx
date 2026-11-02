@@ -20,7 +20,7 @@ export default function AdminPanel({ equipment, onEquipmentChanged }) {
     setMessage(null);
     try {
       await task();
-      setMessage({ type: 'success', text: `${action} 작업을 완료했어요.` });
+      setMessage({ type: 'success', text: action });
       onEquipmentChanged();
     } catch (caught) {
       setMessage({ type: 'error', text: caught.message || '요청에 실패했습니다.' });
@@ -37,7 +37,7 @@ export default function AdminPanel({ equipment, onEquipmentChanged }) {
       setMessage({ type: 'error', text: '기자재 번호와 이름을 확인해 주세요.' });
       return;
     }
-    await run('기자재 등록', async () => {
+    await run('기자재가 등록됐어요.', async () => {
       await apiRequest('/equipment', { method: 'POST', body: { id, name } });
       setNewId('');
       setNewName('');
@@ -47,15 +47,15 @@ export default function AdminPanel({ equipment, onEquipmentChanged }) {
   async function renameEquipment(event) {
     event.preventDefault();
     if (!selected || !rename.trim() || rename.trim().length > 100) return;
-    await run('이름 변경', () => apiRequest(`/equipment/${selected.id}/name`, {
+    await run('기자재 이름을 변경했어요.', () => apiRequest(`/equipment/${selected.id}/name`, {
       method: 'PATCH', body: { name: rename.trim() },
     }));
   }
 
   async function deleteEquipment() {
     if (!selected || busy) return;
-    if (!window.confirm(`'${selected.name}' 기자재를 삭제할까요?\n연결된 예약이 있으면 서버에서 삭제를 거부합니다.`)) return;
-    await run('기자재 삭제', async () => {
+    if (!window.confirm(`'${selected.name}' 기자재를 삭제할까요?\n예약 내역이 있는 기자재는 삭제할 수 없어요.`)) return;
+    await run('기자재가 삭제됐어요.', async () => {
       await apiRequest(`/equipment/${selected.id}`, { method: 'DELETE' });
       setSelectedId('');
     });

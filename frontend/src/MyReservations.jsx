@@ -111,7 +111,7 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                   </div>
                   <div className="booking-row-actions">
                     <span className={`reservation-status ${active ? 'active' : 'canceled'}`}>
-                      {active ? '예약 중' : canceled ? '취소됨' : '상태 확인 필요'}
+                      {active ? '예약 확정' : canceled ? '취소됨' : '상태 확인 필요'}
                     </span>
                     {active && !confirming && (
                       <button

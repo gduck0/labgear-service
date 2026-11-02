@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ArrowRight, LockKeyhole, Mail, X } from 'lucide-react';
 import { apiRequest, login } from './apiClient.js';
+import { useModalFocus } from './useModalFocus.js';
 
 export default function AuthDialog({ onClose, onAuthenticated }) {
   const [mode, setMode] = useState('login');
@@ -10,15 +11,8 @@ export default function AuthDialog({ onClose, onAuthenticated }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const emailRef = useRef(null);
-
-  useEffect(() => {
-    emailRef.current?.focus();
-    function onKeyDown(event) {
-      if (event.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  const dialogRef = useRef(null);
+  useModalFocus(dialogRef, emailRef, onClose);
 
   async function submit(event) {
     event.preventDefault();
@@ -33,7 +27,7 @@ export default function AuthDialog({ onClose, onAuthenticated }) {
           body: { email: email.trim(), password },
         });
         setMode('login');
-        setNotice('회원가입이 완료됐습니다. 같은 정보로 로그인해 주세요.');
+        setNotice('회원가입이 완료됐어요. 로그인해 주세요.');
       } else {
         const account = await login(email.trim(), password);
         onAuthenticated(account);
@@ -56,7 +50,7 @@ export default function AuthDialog({ onClose, onAuthenticated }) {
     <div className="modal-backdrop" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <section className="modal auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <section ref={dialogRef} className="modal auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <button className="icon-button modal-close" onClick={onClose} aria-label="닫기"><X size={20} /></button>
         <div className="modal-symbol"><LockKeyhole size={24} /></div>
         <h2 id="auth-title">{mode === 'login' ? 'LabGear에 로그인' : '새 계정 만들기'}</h2>

@@ -13,7 +13,7 @@ function EquipmentCard({ item, onReserve }) {
   return (
     <article className="equipment-card">
       <div className="equipment-art"><Package size={37} strokeWidth={1.4}/><span className="equipment-mark">LABGEAR</span></div>
-      <div className="equipment-card-content"><span className="equipment-id">EQUIPMENT #{item.id}</span><h3>{item.name}</h3><button className="reserve-link" onClick={() => onReserve(item)} aria-label={`${item.name} 예약하기`}>예약하기 <ArrowRight size={17}/></button></div>
+      <div className="equipment-card-content"><span className="equipment-id">기자재 번호 {item.id}</span><h3>{item.name}</h3><button className="reserve-link" onClick={() => onReserve(item)} aria-label={`${item.name} 예약하기`}>예약하기 <ArrowRight size={17}/></button></div>
     </article>
   );
 }
@@ -33,7 +33,7 @@ export default function App() {
   const [bookingRevision, setBookingRevision] = useState(0);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('id');
-  const [toast, setToast] = useState('');
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -58,6 +58,12 @@ export default function App() {
     return () => controller.abort();
   }, [equipmentRevision]);
 
+  useEffect(() => {
+    if (!toast || toast.type === 'error') return undefined;
+    const timeoutId = window.setTimeout(() => setToast(null), 4500);
+    return () => window.clearTimeout(timeoutId);
+  }, [toast]);
+
   const closeAuth = useCallback(() => {
     setAuthOpen(false);
     setPendingEquipment(null);
@@ -74,7 +80,7 @@ export default function App() {
   }, [equipment, search, sort]);
 
   function choosePage(next) {
-    setToast('');
+    setToast(null);
     if (next === 'catalog') { setPage(next); return; }
     if (accountLoading) return;
     if (!account) {
@@ -87,7 +93,7 @@ export default function App() {
   }
 
   function startReservation(item) {
-    setToast('');
+    setToast(null);
     if (!account) {
       setPendingEquipment(item);
       setAuthOpen(true);
@@ -111,17 +117,17 @@ export default function App() {
       setAccount(null);
       setPage('catalog');
       setBookingEquipment(null);
-      setToast('로그아웃했어요.');
+      setToast({ message: '로그아웃했어요.', type: 'success' });
     } catch (error) {
-      setToast(error.message);
+      setToast({ message: error.message, type: 'error' });
     }
   }
 
-  function bookingCreated(reservation) {
+  function bookingCreated() {
     setBookingEquipment(null);
     setBookingRevision((value) => value + 1);
     setPage('reservations');
-    setToast(`예약이 접수됐어요. 예약 번호는 #${reservation.id}입니다.`);
+    setToast({ message: '예약이 완료됐어요.', type: 'success' });
   }
 
   return (
@@ -134,7 +140,7 @@ export default function App() {
           {account?.role === 'ADMIN' && <button className={page === 'admin' ? 'active' : ''} onClick={() => choosePage('admin')}>관리자</button>}
         </nav>
         <div className="account-actions">
-          {account ? <div className="signed-in"><span className="account-initial">{account.email?.slice(0, 1).toUpperCase()}</span><span className="account-email" title={account.email}>{account.email}</span><button className="icon-button" onClick={signOut} aria-label="로그아웃" title="로그아웃"><LogOut size={18}/></button></div>
+          {account ? <div className="signed-in"><span className="account-initial">{account.email?.slice(0, 1).toUpperCase()}</span><span className="account-email" title={account.email}>{account.email}</span><button className="button subtle signout-button" onClick={signOut} aria-label="로그아웃"><LogOut size={17}/><span>로그아웃</span></button></div>
             : <button className="button login-button" onClick={() => setAuthOpen(true)} disabled={accountLoading}><LogIn size={17}/>{accountLoading ? '확인 중' : '로그인'}</button>}
         </div>
       </div></header>
@@ -156,9 +162,9 @@ export default function App() {
         {page === 'reservations' && account && <div className="container"><MyReservations revision={bookingRevision} equipment={equipment} onBrowse={() => choosePage('catalog')}/></div>}
         {page === 'admin' && account?.role === 'ADMIN' && <div className="container"><AdminPanel equipment={equipment} onEquipmentChanged={() => setEquipmentRevision((value) => value + 1)}/></div>}
       </main>
-      <footer className="site-footer"><div className="container footer-inner"><span>LabGear · 학과 기자재 예약 서비스</span><span>Java / Spring Boot / React</span></div></footer>
+      <footer className="site-footer"><div className="container footer-inner"><span>LabGear · 학과 기자재 예약</span></div></footer>
 
-      {toast && <div className="toast" role="status"><button onClick={() => setToast('')} aria-label="알림 닫기"><X size={16}/></button>{toast}</div>}
+      {toast && <div className={`toast${toast.type === 'error' ? ' error' : ''}`} role={toast.type === 'error' ? 'alert' : 'status'}><button onClick={() => setToast(null)} aria-label="알림 닫기"><X size={16}/></button>{toast.message}</div>}
       {authOpen && <AuthDialog onClose={closeAuth} onAuthenticated={onAuthenticated}/>}
       {bookingEquipment && <BookingDialog key={bookingEquipment.id} equipment={bookingEquipment} onClose={() => setBookingEquipment(null)} onCreated={bookingCreated}/>}
     </div>
