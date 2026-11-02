@@ -96,15 +96,21 @@ main{flex:1}
 .booking-row{border:1px solid #e0e8f1;background:#fff;border-radius:15px;padding:20px;display:flex;align-items:center;gap:19px}
 .booking-device-icon{display:grid;place-items:center;width:55px;height:55px;border-radius:14px;background:#edf4ff;color:#4778c1;flex-shrink:0}
 .booking-row-main{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
-.booking-row-main strong{font-size:1rem}.booking-row-main span{font-size:.81rem}
+.booking-row-main strong{font-size:1rem}
+.booking-row-main>span{font-size:.81rem}
+.booking-device-heading{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.booking-device-heading strong{overflow-wrap:anywhere}
+.booking-device-heading .reservation-status{font-size:.78rem}
 .booking-period{display:flex;align-items:center;gap:9px;font-size:.88rem;font-weight:600;color:#4a5c76;white-space:nowrap}
 .list-footnote{font-size:.8rem;color:#8794a6;margin-top:20px}
 .booking-row.is-canceled{background:#fcfdff}
-.booking-row-actions{display:flex;flex-direction:column;align-items:flex-end;gap:9px;min-width:126px}
+.booking-row-actions{display:flex;flex-direction:column;align-items:flex-end;gap:9px;min-width:0}
 .reservation-status{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:.76rem;font-weight:700;white-space:nowrap}
 .reservation-status.active{background:#eaf2ff;color:#2c5daa}
 .reservation-status.canceled{background:#eef0f3;color:#657184}
-.booking-cancel-button,.booking-confirm-buttons .button{padding:8px 11px;font-size:.79rem}
+.booking-cancel-button{background:transparent;border:0;color:#788497;padding:6px 2px;font-size:.76rem;font-weight:500}
+.booking-cancel-button:hover{color:#9b3e45;text-decoration:underline}
+.booking-confirm-buttons .button{padding:8px 11px;font-size:.79rem}
 .booking-cancel-confirm{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .booking-cancel-confirm p{margin:0;font-size:.81rem;color:#8e3e47;font-weight:600}
 .booking-confirm-buttons{display:flex;gap:7px}
