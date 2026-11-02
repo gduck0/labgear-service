@@ -104,7 +104,7 @@ main{flex:1}
 .booking-period{display:flex;align-items:center;gap:9px;font-size:.88rem;font-weight:600;color:#4a5c76;white-space:nowrap}
 .list-footnote{font-size:.8rem;color:#8794a6;margin-top:20px}
 .booking-row.is-canceled{background:#fcfdff}
-.booking-row-actions{display:flex;flex-direction:column;align-items:flex-end;gap:9px;min-width:0}
+.booking-row-actions{display:flex;flex:0 0 170px;flex-direction:column;align-items:flex-end;gap:9px;min-width:0}
 .reservation-status{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:.76rem;font-weight:700;white-space:nowrap}
 .reservation-status.active{background:#eaf2ff;color:#2c5daa}
 .reservation-status.canceled{background:#eef0f3;color:#657184}
@@ -190,7 +190,8 @@ main{flex:1}
   .booking-row-main{flex:1}
   .booking-period{margin-left:67px;width:calc(100% - 67px);font-size:.82rem;white-space:normal;flex-wrap:wrap}
   .booking-period span{overflow-wrap:anywhere}
-  .booking-row-actions{margin-left:67px;align-items:flex-start;width:calc(100% - 67px)}
+  .booking-row-actions{margin-left:67px;align-items:flex-start;width:calc(100% - 67px);flex:1 1 calc(100% - 67px)}
+  .booking-row-actions:empty{display:none}
   .booking-cancel-confirm{align-items:flex-start}
   .admin-grid{grid-template-columns:1fr}
   .modal{padding:26px}
