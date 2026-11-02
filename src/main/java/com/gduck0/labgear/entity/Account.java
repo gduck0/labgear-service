@@ -1,13 +1,13 @@
 package com.gduck0.labgear.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "accounts")
@@ -32,8 +32,7 @@ public class Account {
         this.role = Role.USER;
     }
 
-    protected Account() {
-    }
+    protected Account() {}
 
     public Long getId() {
         return id;
@@ -48,6 +47,6 @@ public class Account {
     }
 
     public Role getRole() {
-    return role;
-}
+        return role;
+    }
 }

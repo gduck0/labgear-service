@@ -1,6 +1,6 @@
 package com.gduck0.labgear.repository;
 
-import java.util.Optional;
+import com.gduck0.labgear.entity.Equipment;
 
 import jakarta.persistence.LockModeType;
 
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.gduck0.labgear.entity.Equipment;
+import java.util.Optional;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Integer> {
 

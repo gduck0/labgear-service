@@ -7,8 +7,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class LabgearApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {}
 }

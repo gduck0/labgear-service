@@ -4,11 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 
 public class EquipmentNameUpdateRequest {
 
-    @NotBlank
-    private String name;
+    @NotBlank private String name;
 
-    protected EquipmentNameUpdateRequest() {
-    }
+    protected EquipmentNameUpdateRequest() {}
 
     public EquipmentNameUpdateRequest(String name) {
         this.name = name;

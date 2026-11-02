@@ -1,4 +1,3 @@
-
 package com.gduck0.labgear;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -7,7 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.UUID;
+import com.gduck0.labgear.service.AccountService;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,23 +17,20 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gduck0.labgear.service.AccountService;
+import java.util.UUID;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class FrontendContractIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private AccountService accountService;
+    @Autowired private AccountService accountService;
 
     @Test
     void anonymousUserCanReadEquipment() throws Exception {
-        mockMvc.perform(get("/equipment"))
-                .andExpect(status().isOk());
+        mockMvc.perform(get("/equipment")).andExpect(status().isOk());
     }
 
     @Test
@@ -51,15 +47,16 @@ class FrontendContractIntegrationTest {
         String password = "password123";
         accountService.register(email, password);
 
-        MvcResult result = mockMvc.perform(post("/login")
-                .with(csrf())
-                .param("email", email)
-                .param("password", password))
-                .andExpect(status().isOk())
-                .andReturn();
+        MvcResult result =
+                mockMvc.perform(
+                                post("/login")
+                                        .with(csrf())
+                                        .param("email", email)
+                                        .param("password", password))
+                        .andExpect(status().isOk())
+                        .andReturn();
 
-        MockHttpSession session =
-                (MockHttpSession) result.getRequest().getSession(false);
+        MockHttpSession session = (MockHttpSession) result.getRequest().getSession(false);
 
         mockMvc.perform(get("/accounts/me").session(session))
                 .andExpect(status().isOk())

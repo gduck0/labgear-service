@@ -1,18 +1,17 @@
-
 package com.gduck0.labgear.entity;
-
-import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "reservations")
@@ -40,10 +39,10 @@ public class Reservation {
     @Column(nullable = false, length = 20)
     private ReservationStatus status;
 
-    protected Reservation() {
-    }
+    protected Reservation() {}
 
-    public Reservation(Account account, Equipment equipment, LocalDate startDate, LocalDate endDate) {
+    public Reservation(
+            Account account, Equipment equipment, LocalDate startDate, LocalDate endDate) {
         this.account = account;
         this.equipment = equipment;
         this.startDate = startDate;

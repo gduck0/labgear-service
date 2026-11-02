@@ -1,25 +1,25 @@
 package com.gduck0.labgear.controller;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.http.HttpStatus;
-
 import com.gduck0.labgear.dto.EquipmentCreateRequest;
-import com.gduck0.labgear.dto.EquipmentResponse;
 import com.gduck0.labgear.dto.EquipmentNameUpdateRequest;
+import com.gduck0.labgear.dto.EquipmentResponse;
 import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.service.EquipmentService;
 
 import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class EquipmentController {
@@ -59,7 +59,8 @@ public class EquipmentController {
     }
 
     @PatchMapping("/equipment/{id}/name")
-    public void updateEquipmentName(@PathVariable int id, @Valid @RequestBody EquipmentNameUpdateRequest request) {
+    public void updateEquipmentName(
+            @PathVariable int id, @Valid @RequestBody EquipmentNameUpdateRequest request) {
         equipmentService.updateEquipmentName(id, request.getName());
     }
 }

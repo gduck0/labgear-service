@@ -6,9 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public class AccountCreateRequest {
 
-    @NotBlank
-    @Email
-    private String email;
+    @NotBlank @Email private String email;
 
     @NotBlank
     @Size(min = 8)
@@ -19,8 +17,7 @@ public class AccountCreateRequest {
         this.password = password;
     }
 
-    protected AccountCreateRequest() {
-    }
+    protected AccountCreateRequest() {}
 
     public String getEmail() {
         return email;
