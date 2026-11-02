@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import java.sql.SQLException;
+import org.springframework.dao.DataIntegrityViolationException;
+
 // Service 등에서 발생한 예외를 HTTP 상태 코드와 오류 응답으로 변환한다.
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,5 +30,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceConflict(ResourceConflictException e) {
         ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(
+            DataIntegrityViolationException e) {
+
+        Throwable cause = e;
+
+        while (cause != null) {
+            if (cause instanceof SQLException sqlException
+                    && sqlException.getErrorCode() == 1062) {
+
+                ErrorResponse error = new ErrorResponse(
+                        HttpStatus.CONFLICT.value(),
+                        "이미 존재하는 데이터입니다.");
+
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(error);
+            }
+
+            cause = cause.getCause();
+        }
+
+        throw e;
     }
 }
