@@ -1,0 +1,37 @@
+name: One-time reservation alignment build
+on:
+  push:
+    branches:
+      - feat/frontend-ui-polish
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+      - name: Check patch whitespace
+        run: git diff --check origin/main...HEAD
+      - name: Remove verification workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/one-time-reservation-layout.yml
+          git commit -m "chore: 일회성 예약 정렬 검증 워크플로 정리"
+          git push origin HEAD:feat/frontend-ui-polish
