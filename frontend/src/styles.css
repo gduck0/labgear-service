@@ -108,8 +108,8 @@ main{flex:1}
 .reservation-status{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:.76rem;font-weight:700;white-space:nowrap}
 .reservation-status.active{background:#eaf2ff;color:#2c5daa}
 .reservation-status.canceled{background:#eef0f3;color:#657184}
-.booking-cancel-button{background:transparent;border:0;color:#788497;padding:6px 2px;font-size:.76rem;font-weight:500}
-.booking-cancel-button:hover{color:#9b3e45;text-decoration:underline}
+.booking-cancel-button{background:#fff;border:1px solid #d7dfe9;color:#5d6b7f;padding:8px 12px;font-size:.79rem;font-weight:600}
+.booking-cancel-button:hover{background:#f4f6f9;border-color:#b6c3d4;color:#43536a}
 .booking-confirm-buttons .button{padding:8px 11px;font-size:.79rem}
 .booking-cancel-confirm{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .booking-cancel-confirm p{margin:0;font-size:.81rem;color:#8e3e47;font-weight:600}
