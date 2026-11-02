@@ -44,10 +44,10 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
     try {
       await apiRequest(`/reservations/${id}/cancel`, { method: 'PATCH' });
       setConfirmId(null);
-      setNotice(`예약 #${id}이 취소됐어요. 취소 내역은 목록에 남아 있어요.`);
+      setNotice('예약이 취소됐어요.');
       setReload((value) => value + 1);
     } catch (caught) {
-      setCancelError(`예약 #${id}을 취소하지 못했어요. ${caught.message || '다시 시도해 주세요.'}`);
+      setCancelError(`예약을 취소하지 못했어요. ${caught.message || '다시 시도해 주세요.'}`);
     } finally {
       setCancelingId(null);
     }
@@ -59,7 +59,7 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
         <div>
           <p className="eyebrow">MY RESERVATIONS</p>
           <h1 id="my-reservations-title">내 예약</h1>
-          <p className="muted">예약 상태를 확인하고 필요하지 않은 예약을 취소할 수 있어요.</p>
+          <p className="muted">예약 내역을 확인하세요.</p>
         </div>
         <button
           className="button subtle"
@@ -159,7 +159,6 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
               );
             })}
           </div>
-          <p className="list-footnote">취소한 예약은 기록으로 남으며, 같은 기간을 다시 예약할 수 있어요.</p>
         </>
       )}
     </section>
