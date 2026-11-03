@@ -32,20 +32,17 @@ public class ReservationController {
     @ResponseStatus(HttpStatus.CREATED)
     public ReservationResponse createReservation(
             @Valid @RequestBody ReservationCreateRequest request, Authentication authentication) {
-
-        Reservation reservation =
-                reservationService.createReservation(
-                        authentication.getName(),
-                        request.getEquipmentId(),
-                        request.getStartDate(),
-                        request.getEndDate());
+        Reservation reservation = reservationService.createReservation(
+                authentication.getName(),
+                request.getEquipmentId(),
+                request.getStartDate(),
+                request.getEndDate());
 
         return toResponse(reservation);
     }
 
     @GetMapping("/reservations/my")
     public List<ReservationResponse> getMyReservations(Authentication authentication) {
-
         return reservationService.getMyReservations(authentication.getName()).stream()
                 .map(this::toResponse)
                 .toList();
@@ -54,22 +51,40 @@ public class ReservationController {
     @GetMapping("/reservations/{id}")
     public ReservationResponse getReservation(
             @PathVariable Long id, Authentication authentication) {
-
         Reservation reservation = reservationService.getReservation(id, authentication.getName());
 
         return toResponse(reservation);
     }
 
+    @GetMapping("/reservations")
+    public List<ReservationResponse> getAllReservations() {
+        return reservationService.getAllReservations().stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     @PatchMapping("/reservations/{id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelReservation(@PathVariable Long id, Authentication authentication) {
-
         reservationService.cancelReservation(id, authentication.getName());
+    }
+
+    @PatchMapping("/reservations/{id}/rent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void rentReservation(@PathVariable Long id) {
+        reservationService.rentReservation(id);
+    }
+
+    @PatchMapping("/reservations/{id}/return")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void returnReservation(@PathVariable Long id) {
+        reservationService.returnReservation(id);
     }
 
     private ReservationResponse toResponse(Reservation reservation) {
         return new ReservationResponse(
                 reservation.getId(),
+                reservation.getAccount().getEmail(),
                 reservation.getEquipment().getId(),
                 reservation.getStartDate(),
                 reservation.getEndDate(),

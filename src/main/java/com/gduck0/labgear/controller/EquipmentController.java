@@ -3,11 +3,15 @@ package com.gduck0.labgear.controller;
 import com.gduck0.labgear.dto.EquipmentCreateRequest;
 import com.gduck0.labgear.dto.EquipmentNameUpdateRequest;
 import com.gduck0.labgear.dto.EquipmentResponse;
+import com.gduck0.labgear.dto.ReservedPeriodResponse;
 import com.gduck0.labgear.entity.Equipment;
+import com.gduck0.labgear.entity.Reservation;
 import com.gduck0.labgear.service.EquipmentService;
+import com.gduck0.labgear.service.ReservationService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,18 +19,23 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 public class EquipmentController {
-    private final EquipmentService equipmentService;
 
-    public EquipmentController(EquipmentService equipmentService) {
+    private final EquipmentService equipmentService;
+    private final ReservationService reservationService;
+
+    public EquipmentController(EquipmentService equipmentService, ReservationService reservationService) {
         this.equipmentService = equipmentService;
+        this.reservationService = reservationService;
     }
 
     @GetMapping("/equipment")
@@ -49,8 +58,20 @@ public class EquipmentController {
     @GetMapping("/equipment/{id}")
     public EquipmentResponse getEquipment(@PathVariable int id) {
         Equipment item = equipmentService.getEquipment(id);
-        EquipmentResponse response = new EquipmentResponse(item.getId(), item.getName());
-        return response;
+        return new EquipmentResponse(item.getId(), item.getName());
+    }
+
+    @GetMapping("/equipment/{id}/reserved-periods")
+    public List<ReservedPeriodResponse> getReservedPeriods(
+            @PathVariable int id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        List<Reservation> reservations = reservationService.getReservedPeriods(id, startDate, endDate);
+
+        return reservations.stream()
+                .map(reservation -> new ReservedPeriodResponse(reservation.getStartDate(), reservation.getEndDate()))
+                .toList();
     }
 
     @DeleteMapping("/equipment/{id}")
@@ -60,7 +81,9 @@ public class EquipmentController {
 
     @PatchMapping("/equipment/{id}/name")
     public void updateEquipmentName(
-            @PathVariable int id, @Valid @RequestBody EquipmentNameUpdateRequest request) {
+            @PathVariable int id,
+            @Valid @RequestBody EquipmentNameUpdateRequest request) {
+
         equipmentService.updateEquipmentName(id, request.getName());
     }
 }

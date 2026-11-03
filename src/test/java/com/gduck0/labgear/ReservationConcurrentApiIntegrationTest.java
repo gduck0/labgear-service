@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -54,8 +55,8 @@ class ReservationConcurrentApiIntegrationTest {
 
         Account accountB = accountRepository.save(new Account(emailB, "test-password-hash"));
 
-        LocalDate startDate = LocalDate.of(2026, 11, 10);
-        LocalDate endDate = LocalDate.of(2026, 11, 12);
+        LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
+        LocalDate endDate = startDate.plusDays(2);
 
         List<Integer> equipmentIds = new ArrayList<>();
 

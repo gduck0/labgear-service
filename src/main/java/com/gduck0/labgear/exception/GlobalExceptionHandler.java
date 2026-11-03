@@ -42,8 +42,7 @@ public class GlobalExceptionHandler {
         while (cause != null) {
             if (cause instanceof SQLException sqlException && sqlException.getErrorCode() == 1062) {
 
-                ErrorResponse error =
-                        new ErrorResponse(HttpStatus.CONFLICT.value(), "이미 존재하는 데이터입니다.");
+                ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), "이미 존재하는 데이터입니다.");
 
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
             }

@@ -41,27 +41,24 @@ public class EquipmentService {
     }
 
     public Equipment getEquipment(int id) {
-        return equipmentRepository
-                .findById(id)
+        return equipmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("기자재를 찾을 수 없습니다. ID: " + id));
     }
 
     @Transactional
     public void deleteEquipment(int id) {
-        getEquipment(id);
+        Equipment item = equipmentRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("기자재를 찾을 수 없습니다. ID: " + id));
         if (reservationRepository.existsByEquipment_Id(id)) {
             throw new ResourceConflictException("예약이 존재하는 기자재 ID입니다");
         }
-        equipmentRepository.deleteById(id);
+        equipmentRepository.delete(item);
     }
 
     @Transactional
     public void updateEquipmentName(int id, String name) {
-        Equipment item =
-                equipmentRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () -> new ResourceNotFoundException("기자재를 찾을 수 없습니다. ID: " + id));
+        Equipment item = equipmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("기자재를 찾을 수 없습니다. ID: " + id));
         item.updateName(name);
     }
 }

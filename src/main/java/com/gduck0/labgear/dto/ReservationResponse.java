@@ -7,6 +7,7 @@ import java.time.LocalDate;
 public class ReservationResponse {
 
     private final Long id;
+    private final String accountEmail;
     private final int equipmentId;
     private final LocalDate startDate;
     private final LocalDate endDate;
@@ -14,11 +15,13 @@ public class ReservationResponse {
 
     public ReservationResponse(
             Long id,
+            String accountEmail,
             int equipmentId,
             LocalDate startDate,
             LocalDate endDate,
             ReservationStatus status) {
         this.id = id;
+        this.accountEmail = accountEmail;
         this.equipmentId = equipmentId;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -27,6 +30,10 @@ public class ReservationResponse {
 
     public Long getId() {
         return id;
+    }
+
+    public String getAccountEmail() {
+        return accountEmail;
     }
 
     public int getEquipmentId() {

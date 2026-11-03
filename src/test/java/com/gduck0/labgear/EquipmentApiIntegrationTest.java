@@ -28,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -92,6 +93,39 @@ class EquipmentApiIntegrationTest {
     }
 
     @Test
+    void equipmentNameCannotExceedOneHundredCharacters() throws Exception {
+        int equipmentId = nextId();
+        String maximum = "A".repeat(100);
+        String tooLong = "A".repeat(101);
+
+        mockMvc.perform(
+                        post("/equipment")
+                                .with(user("admin@example.com").roles("ADMIN"))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(createJson(equipmentId, tooLong)))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(
+                        post("/equipment")
+                                .with(user("admin@example.com").roles("ADMIN"))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(createJson(equipmentId, maximum)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(
+                        patch("/equipment/{id}/name", equipmentId)
+                                .with(user("admin@example.com").roles("ADMIN"))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\"" + tooLong + "\"}"))
+                .andExpect(status().isBadRequest());
+
+        assertEquals(maximum, equipmentRepository.findById(equipmentId).orElseThrow().getName());
+    }
+
+    @Test
     void missingEquipmentReturns404() throws Exception {
         int id = nextId();
 
@@ -113,7 +147,9 @@ class EquipmentApiIntegrationTest {
 
         Reservation reservation =
                 reservationService.createReservation(
-                        email, equipmentId, LocalDate.of(2026, 11, 10), LocalDate.of(2026, 11, 12));
+                        email, equipmentId,
+                        LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30),
+                        LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(32));
 
         mockMvc.perform(
                         delete("/equipment/{id}", equipmentId)

@@ -8,6 +8,7 @@ import AuthDialog from './AuthDialog.jsx';
 import BookingDialog from './BookingDialog.jsx';
 import MyReservations from './MyReservations.jsx';
 import AdminPanel from './AdminPanel.jsx';
+import AdminReservations from './AdminReservations.jsx';
 
 function EquipmentCard({ item, onReserve }) {
   return (
@@ -160,7 +161,7 @@ export default function App() {
           </section>
         </>}
         {page === 'reservations' && account && <div className="container"><MyReservations revision={bookingRevision} equipment={equipment} onBrowse={() => choosePage('catalog')}/></div>}
-        {page === 'admin' && account?.role === 'ADMIN' && <div className="container"><AdminPanel equipment={equipment} onEquipmentChanged={() => setEquipmentRevision((value) => value + 1)}/></div>}
+        {page === 'admin' && account?.role === 'ADMIN' && <div className="container"><AdminPanel equipment={equipment} onEquipmentChanged={() => setEquipmentRevision((value) => value + 1)}/><AdminReservations equipment={equipment}/></div>}
       </main>
       <footer className="site-footer"><div className="container footer-inner"><span>LabGear · 학과 기자재 예약</span></div></footer>
 

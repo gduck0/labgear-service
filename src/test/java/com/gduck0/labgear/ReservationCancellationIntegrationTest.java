@@ -25,6 +25,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -44,8 +45,8 @@ import java.util.concurrent.TimeUnit;
 @AutoConfigureMockMvc
 class ReservationCancellationIntegrationTest {
 
-    private static final LocalDate START = LocalDate.of(2027, 2, 10);
-    private static final LocalDate END = LocalDate.of(2027, 2, 12);
+    private static final LocalDate START = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
+    private static final LocalDate END = START.plusDays(2);
 
     @Autowired private MockMvc mockMvc;
 

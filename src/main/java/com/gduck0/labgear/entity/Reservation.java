@@ -1,5 +1,7 @@
 package com.gduck0.labgear.entity;
 
+import com.gduck0.labgear.exception.ResourceConflictException;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -39,10 +41,10 @@ public class Reservation {
     @Column(nullable = false, length = 20)
     private ReservationStatus status;
 
-    protected Reservation() {}
+    protected Reservation() {
+    }
 
-    public Reservation(
-            Account account, Equipment equipment, LocalDate startDate, LocalDate endDate) {
+    public Reservation(Account account, Equipment equipment, LocalDate startDate, LocalDate endDate) {
         this.account = account;
         this.equipment = equipment;
         this.startDate = startDate;
@@ -75,6 +77,23 @@ public class Reservation {
     }
 
     public void cancel() {
+        if (this.status != ReservationStatus.ACTIVE) {
+            throw new ResourceConflictException("예약 중인 기자재만 취소할 수 있습니다.");
+        }
         this.status = ReservationStatus.CANCELED;
+    }
+
+    public void rent() {
+        if (this.status != ReservationStatus.ACTIVE) {
+            throw new ResourceConflictException("예약 중인 기자재만 대여 처리할 수 있습니다.");
+        }
+        this.status = ReservationStatus.RENTED;
+    }
+
+    public void returnEquipment() {
+        if (this.status != ReservationStatus.RENTED) {
+            throw new ResourceConflictException("대여 중인 기자재만 반납할 수 있습니다.");
+        }
+        this.status = ReservationStatus.RETURNED;
     }
 }
