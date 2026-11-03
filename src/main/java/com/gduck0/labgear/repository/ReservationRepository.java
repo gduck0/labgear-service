@@ -1,6 +1,7 @@
 package com.gduck0.labgear.repository;
 
 import com.gduck0.labgear.entity.Reservation;
+import com.gduck0.labgear.entity.ReservationStatus;
 
 import jakarta.persistence.LockModeType;
 
@@ -51,4 +52,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Reservation r WHERE r.id = :id")
     Optional<Reservation> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("SELECT r.equipment.id FROM Reservation r WHERE r.id = :id")
+    Optional<Integer> findEquipmentIdByReservationId(@Param("id") Long id);
+
+    boolean existsByEquipment_IdAndStatus(int equipmentId, ReservationStatus status);
 }
