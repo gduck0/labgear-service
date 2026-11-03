@@ -44,274 +44,379 @@ import java.util.concurrent.TimeUnit;
 @AutoConfigureMockMvc
 class ReservationRentalReturnIntegrationTest {
 
-    private static final LocalDate START = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
-    private static final LocalDate END = START.plusDays(2);
+        private static final LocalDate START = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
+        private static final LocalDate END = START.plusDays(2);
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ReservationService reservationService;
+        @Autowired
+        private ReservationService reservationService;
 
-    @Autowired
-    private AccountRepository accountRepository;
+        @Autowired
+        private AccountRepository accountRepository;
 
-    @Autowired
-    private EquipmentRepository equipmentRepository;
+        @Autowired
+        private EquipmentRepository equipmentRepository;
 
-    @Autowired
-    private ReservationRepository reservationRepository;
+        @Autowired
+        private ReservationRepository reservationRepository;
 
-    private final List<Long> accountIds = new ArrayList<>();
-    private final List<Integer> equipmentIds = new ArrayList<>();
+        private final List<Long> accountIds = new ArrayList<>();
+        private final List<Integer> equipmentIds = new ArrayList<>();
 
-    @AfterEach
-    void cleanup() {
-        for (Long accountId : accountIds) {
-            reservationRepository.deleteAll(
-                    reservationRepository.findByAccount_IdOrderByIdDesc(accountId));
-        }
-        for (Integer equipmentId : equipmentIds) {
-            equipmentRepository.deleteById(equipmentId);
-        }
-        for (Long accountId : accountIds) {
-            accountRepository.deleteById(accountId);
-        }
-    }
-
-    @Test
-    void adminCanRentAndReturnReservation() throws Exception {
-        Account owner = saveAccount();
-        Reservation reservation = reserve(owner, saveEquipment());
-
-        mockMvc.perform(
-                patch("/reservations/{id}/rent", reservation.getId())
-                        .with(user("admin").roles("ADMIN"))
-                        .with(csrf()))
-                .andExpect(status().isNoContent());
-
-        assertStatus(reservation.getId(), ReservationStatus.RENTED);
-
-        mockMvc.perform(
-                get("/reservations/{id}", reservation.getId())
-                        .with(user(owner.getEmail()).roles("USER")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("RENTED"));
-
-        mockMvc.perform(
-                patch("/reservations/{id}/return", reservation.getId())
-                        .with(user("admin").roles("ADMIN"))
-                        .with(csrf()))
-                .andExpect(status().isNoContent());
-
-        assertStatus(reservation.getId(), ReservationStatus.RETURNED);
-    }
-
-    @Test
-    void normalUserCannotRentOrReturn() throws Exception {
-        Account owner = saveAccount();
-        Reservation reservation = reserve(owner, saveEquipment());
-
-        mockMvc.perform(
-                patch("/reservations/{id}/rent", reservation.getId())
-                        .with(user(owner.getEmail()).roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isForbidden());
-
-        mockMvc.perform(
-                patch("/reservations/{id}/return", reservation.getId())
-                        .with(user(owner.getEmail()).roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isForbidden());
-
-        assertStatus(reservation.getId(), ReservationStatus.ACTIVE);
-    }
-
-    @Test
-    void invalidTransitionsReturn409() throws Exception {
-        Account owner = saveAccount();
-        Reservation reservation = reserve(owner, saveEquipment());
-        Long id = reservation.getId();
-
-        adminPatch(id, "return", 409);
-        assertStatus(id, ReservationStatus.ACTIVE);
-
-        adminPatch(id, "rent", 204);
-        adminPatch(id, "rent", 409);
-
-        mockMvc.perform(
-                patch("/reservations/{id}/cancel", id)
-                        .with(user(owner.getEmail()).roles("USER"))
-                        .with(csrf()))
-                .andExpect(status().isConflict());
-
-        assertStatus(id, ReservationStatus.RENTED);
-
-        adminPatch(id, "return", 204);
-        adminPatch(id, "return", 409);
-        adminPatch(id, "rent", 409);
-
-        assertStatus(id, ReservationStatus.RETURNED);
-    }
-
-    @Test
-    void missingReservationReturns404() throws Exception {
-        adminPatch(Long.MAX_VALUE, "rent", 404);
-        adminPatch(Long.MAX_VALUE, "return", 404);
-    }
-
-    @Test
-    void rentedAndReturnedDatesRemainBlocked() throws Exception {
-        Account owner = saveAccount();
-        Account other = saveAccount();
-        Equipment equipment = saveEquipment();
-        Reservation reservation = reserve(owner, equipment);
-
-        adminPatch(reservation.getId(), "rent", 204);
-
-        assertThrows(ResourceConflictException.class,
-                () -> reserve(other, equipment));
-
-        adminPatch(reservation.getId(), "return", 204);
-
-        assertThrows(ResourceConflictException.class,
-                () -> reserve(other, equipment));
-
-        assertStatus(reservation.getId(), ReservationStatus.RETURNED);
-    }
-
-    @Test
-    void simultaneousRentRequestsAllowOnlyOne() throws Exception {
-        Account owner = saveAccount();
-        Reservation reservation = reserve(owner, saveEquipment());
-
-        List<Integer> results = runConcurrentAdminRequests(reservation.getId(), "rent");
-
-        assertEquals(List.of(204, 409), results);
-        assertStatus(reservation.getId(), ReservationStatus.RENTED);
-    }
-
-    @Test
-    void simultaneousReturnRequestsAllowOnlyOne() throws Exception {
-        Account owner = saveAccount();
-        Reservation reservation = reserve(owner, saveEquipment());
-        Long id = reservation.getId();
-
-        adminPatch(id, "rent", 204);
-
-        List<Integer> results = runConcurrentAdminRequests(id, "return");
-
-        assertEquals(List.of(204, 409), results);
-        assertStatus(id, ReservationStatus.RETURNED);
-    }
-
-    @Test
-    void onlyAdminCanReadAllReservations() throws Exception {
-        Account first = saveAccount();
-        Account second = saveAccount();
-
-        Reservation firstReservation = reserve(first, saveEquipment());
-        Reservation secondReservation = reserve(second, saveEquipment());
-
-        mockMvc.perform(
-                get("/reservations")
-                        .with(user(first.getEmail()).roles("USER")))
-                .andExpect(status().isForbidden());
-
-        mockMvc.perform(
-                get("/reservations")
-                        .with(user("admin").roles("ADMIN")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(
-                        "$[?(@.id == " + firstReservation.getId() + ")].status")
-                        .value(org.hamcrest.Matchers.hasItem("ACTIVE")))
-                .andExpect(jsonPath(
-                        "$[?(@.id == " + secondReservation.getId() + ")].status")
-                        .value(org.hamcrest.Matchers.hasItem("ACTIVE")));
-    }
-
-    private List<Integer> runConcurrentAdminRequests(Long id, String action) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        CountDownLatch ready = new CountDownLatch(2);
-        CountDownLatch start = new CountDownLatch(1);
-
-        try {
-            Callable<Integer> request = () -> {
-                ready.countDown();
-
-                if (!start.await(10, TimeUnit.SECONDS)) {
-                    throw new IllegalStateException("동시 요청 준비 시간 초과");
+        @AfterEach
+        void cleanup() {
+                for (Long accountId : accountIds) {
+                        reservationRepository.deleteAll(
+                                        reservationRepository.findByAccount_IdOrderByIdDesc(accountId));
                 }
-
-                return mockMvc.perform(
-                        patch("/reservations/{id}/{action}", id, action)
-                                .with(user("admin").roles("ADMIN"))
-                                .with(csrf()))
-                        .andReturn()
-                        .getResponse()
-                        .getStatus();
-            };
-
-            Future<Integer> first = executor.submit(request);
-            Future<Integer> second = executor.submit(request);
-
-            if (!ready.await(10, TimeUnit.SECONDS)) {
-                throw new IllegalStateException("요청 두 개가 준비되지 않음");
-            }
-
-            start.countDown();
-
-            return List.of(
-                    first.get(20, TimeUnit.SECONDS),
-                    second.get(20, TimeUnit.SECONDS))
-                    .stream()
-                    .sorted()
-                    .toList();
-
-        } finally {
-            start.countDown();
-            executor.shutdownNow();
-            executor.awaitTermination(20, TimeUnit.SECONDS);
+                for (Integer equipmentId : equipmentIds) {
+                        equipmentRepository.deleteById(equipmentId);
+                }
+                for (Long accountId : accountIds) {
+                        accountRepository.deleteById(accountId);
+                }
         }
-    }
 
-    private void adminPatch(Long id, String action, int expectedStatus) throws Exception {
-        int actualStatus = mockMvc.perform(
-                patch("/reservations/{id}/{action}", id, action)
-                        .with(user("admin").roles("ADMIN"))
-                        .with(csrf()))
-                .andReturn()
-                .getResponse()
-                .getStatus();
+        @Test
+        void adminCanRentAndReturnReservation() throws Exception {
+                Account owner = saveAccount();
+                Reservation reservation = reserve(owner, saveEquipment());
 
-        assertEquals(expectedStatus, actualStatus);
-    }
+                mockMvc.perform(
+                                patch("/reservations/{id}/rent", reservation.getId())
+                                                .with(user("admin").roles("ADMIN"))
+                                                .with(csrf()))
+                                .andExpect(status().isNoContent());
 
-    private void assertStatus(Long id, ReservationStatus expected) {
-        Reservation reservation = reservationRepository.findById(id).orElseThrow();
-        assertEquals(expected, reservation.getStatus());
-    }
+                assertStatus(reservation.getId(), ReservationStatus.RENTED);
 
-    private Account saveAccount() {
-        Account account = accountRepository.save(
-                new Account(UUID.randomUUID() + "@example.com", "test-password-hash"));
-        accountIds.add(account.getId());
-        return account;
-    }
+                mockMvc.perform(
+                                get("/reservations/{id}", reservation.getId())
+                                                .with(user(owner.getEmail()).roles("USER")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status").value("RENTED"));
 
-    private Equipment saveEquipment() {
-        int id;
-        do {
-            id = ThreadLocalRandom.current().nextInt(100_000_000, Integer.MAX_VALUE);
-        } while (equipmentRepository.existsById(id));
+                mockMvc.perform(
+                                patch("/reservations/{id}/return", reservation.getId())
+                                                .with(user("admin").roles("ADMIN"))
+                                                .with(csrf()))
+                                .andExpect(status().isNoContent());
 
-        Equipment equipment = equipmentRepository.save(new Equipment(id, "TEST-CAMERA"));
-        equipmentIds.add(equipment.getId());
-        return equipment;
-    }
+                assertStatus(reservation.getId(), ReservationStatus.RETURNED);
+        }
 
-    private Reservation reserve(Account account, Equipment equipment) {
-        return reservationService.createReservation(
-                account.getEmail(), equipment.getId(), START, END);
-    }
+        @Test
+        void normalUserCannotRentOrReturn() throws Exception {
+                Account owner = saveAccount();
+                Reservation reservation = reserve(owner, saveEquipment());
+
+                mockMvc.perform(
+                                patch("/reservations/{id}/rent", reservation.getId())
+                                                .with(user(owner.getEmail()).roles("USER"))
+                                                .with(csrf()))
+                                .andExpect(status().isForbidden());
+
+                mockMvc.perform(
+                                patch("/reservations/{id}/return", reservation.getId())
+                                                .with(user(owner.getEmail()).roles("USER"))
+                                                .with(csrf()))
+                                .andExpect(status().isForbidden());
+
+                assertStatus(reservation.getId(), ReservationStatus.ACTIVE);
+        }
+
+        @Test
+        void invalidTransitionsReturn409() throws Exception {
+                Account owner = saveAccount();
+                Reservation reservation = reserve(owner, saveEquipment());
+                Long id = reservation.getId();
+
+                adminPatch(id, "return", 409);
+                assertStatus(id, ReservationStatus.ACTIVE);
+
+                adminPatch(id, "rent", 204);
+                adminPatch(id, "rent", 409);
+
+                mockMvc.perform(
+                                patch("/reservations/{id}/cancel", id)
+                                                .with(user(owner.getEmail()).roles("USER"))
+                                                .with(csrf()))
+                                .andExpect(status().isConflict());
+
+                assertStatus(id, ReservationStatus.RENTED);
+
+                adminPatch(id, "return", 204);
+                adminPatch(id, "return", 409);
+                adminPatch(id, "rent", 409);
+
+                assertStatus(id, ReservationStatus.RETURNED);
+        }
+
+        @Test
+        void missingReservationReturns404() throws Exception {
+                adminPatch(Long.MAX_VALUE, "rent", 404);
+                adminPatch(Long.MAX_VALUE, "return", 404);
+        }
+
+        @Test
+        void rentedAndReturnedDatesRemainBlocked() throws Exception {
+                Account owner = saveAccount();
+                Account other = saveAccount();
+                Equipment equipment = saveEquipment();
+                Reservation reservation = reserve(owner, equipment);
+
+                adminPatch(reservation.getId(), "rent", 204);
+
+                assertThrows(ResourceConflictException.class,
+                                () -> reserve(other, equipment));
+
+                adminPatch(reservation.getId(), "return", 204);
+
+                assertThrows(ResourceConflictException.class,
+                                () -> reserve(other, equipment));
+
+                assertStatus(reservation.getId(), ReservationStatus.RETURNED);
+        }
+
+        @Test
+        void simultaneousRentRequestsAllowOnlyOne() throws Exception {
+                Account owner = saveAccount();
+                Reservation reservation = reserve(owner, saveEquipment());
+
+                List<Integer> results = runConcurrentAdminRequests(reservation.getId(), "rent");
+
+                assertEquals(List.of(204, 409), results);
+                assertStatus(reservation.getId(), ReservationStatus.RENTED);
+        }
+
+        @Test
+        void simultaneousReturnRequestsAllowOnlyOne() throws Exception {
+                Account owner = saveAccount();
+                Reservation reservation = reserve(owner, saveEquipment());
+                Long id = reservation.getId();
+
+                adminPatch(id, "rent", 204);
+
+                List<Integer> results = runConcurrentAdminRequests(id, "return");
+
+                assertEquals(List.of(204, 409), results);
+                assertStatus(id, ReservationStatus.RETURNED);
+        }
+
+        @Test
+        void onlyAdminCanReadAllReservations() throws Exception {
+                Account first = saveAccount();
+                Account second = saveAccount();
+
+                Reservation firstReservation = reserve(first, saveEquipment());
+                Reservation secondReservation = reserve(second, saveEquipment());
+
+                mockMvc.perform(
+                                get("/reservations")
+                                                .with(user(first.getEmail()).roles("USER")))
+                                .andExpect(status().isForbidden());
+
+                mockMvc.perform(
+                                get("/reservations")
+                                                .with(user("admin").roles("ADMIN")))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath(
+                                                "$[?(@.id == " + firstReservation.getId() + ")].status")
+                                                .value(org.hamcrest.Matchers.hasItem("ACTIVE")))
+                                .andExpect(jsonPath(
+                                                "$[?(@.id == " + secondReservation.getId() + ")].status")
+                                                .value(org.hamcrest.Matchers.hasItem("ACTIVE")));
+        }
+
+        @Test
+        void differentReservationsCannotRentSameEquipmentAtOnce() throws Exception {
+                Account firstOwner = saveAccount();
+                Account secondOwner = saveAccount();
+                Equipment equipment = saveEquipment();
+
+                Reservation first = reserve(firstOwner, equipment);
+
+                Reservation second = reservationService.createReservation(
+                                secondOwner.getEmail(),
+                                equipment.getId(),
+                                START.plusDays(3),
+                                END.plusDays(3));
+
+                adminPatch(first.getId(), "rent", 204);
+                assertStatus(first.getId(), ReservationStatus.RENTED);
+
+                adminPatch(second.getId(), "rent", 409);
+
+                assertStatus(first.getId(), ReservationStatus.RENTED);
+                assertStatus(second.getId(), ReservationStatus.ACTIVE);
+
+                adminPatch(first.getId(), "return", 204);
+                adminPatch(second.getId(), "rent", 204);
+
+                assertStatus(first.getId(), ReservationStatus.RETURNED);
+                assertStatus(second.getId(), ReservationStatus.RENTED);
+        }
+
+        @Test
+        void simultaneousRentRequestsForDifferentReservationsAllowOnlyOne() throws Exception {
+                Account firstOwner = saveAccount();
+                Account secondOwner = saveAccount();
+                Equipment equipment = saveEquipment();
+
+                Reservation first = reserve(firstOwner, equipment);
+                Reservation second = reservationService.createReservation(
+                                secondOwner.getEmail(),
+                                equipment.getId(),
+                                START.plusDays(3),
+                                END.plusDays(3));
+
+                ExecutorService executor = Executors.newFixedThreadPool(2);
+                CountDownLatch ready = new CountDownLatch(2);
+                CountDownLatch start = new CountDownLatch(1);
+
+                try {
+                        Callable<Integer> firstRequest = () -> {
+                                ready.countDown();
+                                if (!start.await(10, TimeUnit.SECONDS)) {
+                                        throw new IllegalStateException("첫 번째 요청 대기 시간 초과");
+                                }
+                                return mockMvc.perform(
+                                                patch("/reservations/{id}/rent", first.getId())
+                                                                .with(user("admin").roles("ADMIN"))
+                                                                .with(csrf()))
+                                                .andReturn().getResponse().getStatus();
+                        };
+
+                        Callable<Integer> secondRequest = () -> {
+                                ready.countDown();
+                                if (!start.await(10, TimeUnit.SECONDS)) {
+                                        throw new IllegalStateException("두 번째 요청 대기 시간 초과");
+                                }
+                                return mockMvc.perform(
+                                                patch("/reservations/{id}/rent", second.getId())
+                                                                .with(user("admin").roles("ADMIN"))
+                                                                .with(csrf()))
+                                                .andReturn().getResponse().getStatus();
+                        };
+
+                        Future<Integer> firstResult = executor.submit(firstRequest);
+                        Future<Integer> secondResult = executor.submit(secondRequest);
+
+                        if (!ready.await(10, TimeUnit.SECONDS)) {
+                                throw new IllegalStateException("요청 준비 시간 초과");
+                        }
+
+                        start.countDown();
+
+                        List<Integer> results = List.of(
+                                        firstResult.get(20, TimeUnit.SECONDS),
+                                        secondResult.get(20, TimeUnit.SECONDS))
+                                        .stream().sorted().toList();
+
+                        assertEquals(List.of(204, 409), results);
+
+                        ReservationStatus firstStatus = reservationRepository.findById(first.getId()).orElseThrow()
+                                        .getStatus();
+                        ReservationStatus secondStatus = reservationRepository.findById(second.getId()).orElseThrow()
+                                        .getStatus();
+
+                        long rentedCount = List.of(firstStatus, secondStatus).stream()
+                                        .filter(status -> status == ReservationStatus.RENTED)
+                                        .count();
+
+                        assertEquals(1L, rentedCount);
+
+                } finally {
+                        start.countDown();
+                        executor.shutdownNow();
+                        executor.awaitTermination(20, TimeUnit.SECONDS);
+                }
+        }
+
+        private List<Integer> runConcurrentAdminRequests(Long id, String action) throws Exception {
+                ExecutorService executor = Executors.newFixedThreadPool(2);
+                CountDownLatch ready = new CountDownLatch(2);
+                CountDownLatch start = new CountDownLatch(1);
+
+                try {
+                        Callable<Integer> request = () -> {
+                                ready.countDown();
+
+                                if (!start.await(10, TimeUnit.SECONDS)) {
+                                        throw new IllegalStateException("동시 요청 준비 시간 초과");
+                                }
+
+                                return mockMvc.perform(
+                                                patch("/reservations/{id}/{action}", id, action)
+                                                                .with(user("admin").roles("ADMIN"))
+                                                                .with(csrf()))
+                                                .andReturn()
+                                                .getResponse()
+                                                .getStatus();
+                        };
+
+                        Future<Integer> first = executor.submit(request);
+                        Future<Integer> second = executor.submit(request);
+
+                        if (!ready.await(10, TimeUnit.SECONDS)) {
+                                throw new IllegalStateException("요청 두 개가 준비되지 않음");
+                        }
+
+                        start.countDown();
+
+                        return List.of(
+                                        first.get(20, TimeUnit.SECONDS),
+                                        second.get(20, TimeUnit.SECONDS))
+                                        .stream()
+                                        .sorted()
+                                        .toList();
+
+                } finally {
+                        start.countDown();
+                        executor.shutdownNow();
+                        executor.awaitTermination(20, TimeUnit.SECONDS);
+                }
+        }
+
+        private void adminPatch(Long id, String action, int expectedStatus) throws Exception {
+                int actualStatus = mockMvc.perform(
+                                patch("/reservations/{id}/{action}", id, action)
+                                                .with(user("admin").roles("ADMIN"))
+                                                .with(csrf()))
+                                .andReturn()
+                                .getResponse()
+                                .getStatus();
+
+                assertEquals(expectedStatus, actualStatus);
+        }
+
+        private void assertStatus(Long id, ReservationStatus expected) {
+                Reservation reservation = reservationRepository.findById(id).orElseThrow();
+                assertEquals(expected, reservation.getStatus());
+        }
+
+        private Account saveAccount() {
+                Account account = accountRepository.save(
+                                new Account(UUID.randomUUID() + "@example.com", "test-password-hash"));
+                accountIds.add(account.getId());
+                return account;
+        }
+
+        private Equipment saveEquipment() {
+                int id;
+                do {
+                        id = ThreadLocalRandom.current().nextInt(100_000_000, Integer.MAX_VALUE);
+                } while (equipmentRepository.existsById(id));
+
+                Equipment equipment = equipmentRepository.save(new Equipment(id, "TEST-CAMERA"));
+                equipmentIds.add(equipment.getId());
+                return equipment;
+        }
+
+        private Reservation reserve(Account account, Equipment equipment) {
+                return reservationService.createReservation(
+                                account.getEmail(), equipment.getId(), START, END);
+        }
 }

@@ -3,6 +3,7 @@ package com.gduck0.labgear.service;
 import com.gduck0.labgear.entity.Account;
 import com.gduck0.labgear.entity.Equipment;
 import com.gduck0.labgear.entity.Reservation;
+import com.gduck0.labgear.entity.ReservationStatus;
 import com.gduck0.labgear.exception.ResourceConflictException;
 import com.gduck0.labgear.exception.ResourceNotFoundException;
 import com.gduck0.labgear.repository.AccountRepository;
@@ -116,8 +117,20 @@ public class ReservationService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void rentReservation(Long id) {
+
+        int equipmentId = reservationRepository.findEquipmentIdByReservationId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("예약을 찾을 수 없습니다. ID: " + id));
+
+        equipmentRepository.findByIdForUpdate(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("기자재를 찾을 수 없습니다. ID: " + equipmentId));
+
         Reservation reservation = reservationRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException("예약을 찾을 수 없습니다. ID: " + id));
+
+        if (reservationRepository.existsByEquipment_IdAndStatus(
+                equipmentId, ReservationStatus.RENTED)) {
+            throw new ResourceConflictException("이미 대여 중인 기자재입니다.");
+        }
 
         reservation.rent();
     }
