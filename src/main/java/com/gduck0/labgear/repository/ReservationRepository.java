@@ -15,12 +15,11 @@ import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    @Query(
-            """
+    @Query("""
             SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END
             FROM Reservation r
             WHERE r.equipment.id = :equipmentId
-                AND r.status = com.gduck0.labgear.entity.ReservationStatus.ACTIVE
+                AND r.status <> com.gduck0.labgear.entity.ReservationStatus.CANCELED
                 AND r.startDate <= :endDate
                 AND r.endDate >= :startDate
             """)
@@ -29,9 +28,25 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
 
+    @Query("""
+            SELECT r
+            FROM Reservation r
+            WHERE r.equipment.id = :equipmentId
+                AND r.status <> com.gduck0.labgear.entity.ReservationStatus.CANCELED
+                AND r.startDate <= :endDate
+                AND r.endDate >= :startDate
+            ORDER BY r.startDate ASC, r.id ASC
+            """)
+    List<Reservation> findReservedPeriods(
+            @Param("equipmentId") int equipmentId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
     boolean existsByEquipment_Id(int equipmentId);
 
     List<Reservation> findByAccount_IdOrderByIdDesc(Long accountId);
+
+    List<Reservation> findAllByOrderByIdDesc();
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Reservation r WHERE r.id = :id")

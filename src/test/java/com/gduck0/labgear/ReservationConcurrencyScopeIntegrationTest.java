@@ -18,6 +18,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import java.util.concurrent.*;
 
 @SpringBootTest
 class ReservationConcurrencyScopeIntegrationTest {
+    private static final LocalDate TEST_START = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
 
     @Autowired private ReservationService reservationService;
 
@@ -74,8 +76,8 @@ class ReservationConcurrencyScopeIntegrationTest {
                             start,
                             userA,
                             equipmentId,
-                            LocalDate.of(2026, 11, 10),
-                            LocalDate.of(2026, 11, 12));
+                            TEST_START,
+                            TEST_START.plusDays(2));
 
             Future<Reservation> second =
                     submitReservation(
@@ -84,8 +86,8 @@ class ReservationConcurrencyScopeIntegrationTest {
                             start,
                             userB,
                             equipmentId,
-                            LocalDate.of(2026, 11, 13),
-                            LocalDate.of(2026, 11, 15));
+                            TEST_START.plusDays(3),
+                            TEST_START.plusDays(5));
 
             assertTrue(ready.await(10, TimeUnit.SECONDS));
             start.countDown();
@@ -148,8 +150,8 @@ class ReservationConcurrencyScopeIntegrationTest {
                                     reservationService.createReservation(
                                             email,
                                             otherEquipmentId,
-                                            LocalDate.of(2026, 11, 10),
-                                            LocalDate.of(2026, 11, 12)));
+                                            TEST_START,
+                                            TEST_START.plusDays(2)));
 
             Future<Equipment> normalRead =
                     executor.submit(

@@ -37,12 +37,9 @@ public class AccountController {
 
     @GetMapping("/accounts/me")
     public Map<String, String> me(Principal principal) {
-        Account account =
-                accountRepository
-                        .findByEmail(principal.getName())
+        Account account = accountRepository.findByEmail(principal.getName())
                         .orElseThrow(() -> new ResourceNotFoundException("계정을 찾을 수 없습니다."));
 
-        // 변경: 프론트엔드에서 USER와 ADMIN 화면을 구분할 수 있도록 역할 반환
         return Map.of("email", account.getEmail(), "role", account.getRole().name());
     }
 }

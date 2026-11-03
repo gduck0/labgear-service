@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, ClipboardList, Package, RefreshCw } from 'lucide-react';
 import { apiRequest } from './apiClient.js';
+import { formatDate, getReservationDisplay } from './reservationStatus.js';
 
-function formatDate(value) {
-  if (!value) return '—';
-  const [year, month, day] = value.split('-');
-  return `${year}.${month}.${day}`;
-}
 
 export default function MyReservations({ revision, onBrowse, equipment }) {
   const [reservations, setReservations] = useState([]);
@@ -93,6 +89,7 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
             {reservations.map((reservation) => {
               const active = reservation.status === 'ACTIVE';
               const canceled = reservation.status === 'CANCELED';
+              const display = getReservationDisplay(reservation);
               const confirming = confirmId === reservation.id;
 
               return (
@@ -104,8 +101,8 @@ export default function MyReservations({ revision, onBrowse, equipment }) {
                   <div className="booking-row-main">
                     <div className="booking-device-heading">
                       <strong>{equipment.find((item) => item.id === reservation.equipmentId)?.name || `기자재 #${reservation.equipmentId}`}</strong>
-                      <span className={`reservation-status ${active ? 'active' : 'canceled'}`}>
-                        {active ? '예약 확정' : canceled ? '취소됨' : '상태 확인 필요'}
+                      <span className={`reservation-status ${display.className}`}>
+                        {display.label}
                       </span>
                     </div>
                     <span className="muted">기자재 #{reservation.equipmentId} · 예약 #{reservation.id}</span>

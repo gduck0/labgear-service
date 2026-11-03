@@ -28,6 +28,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -35,6 +37,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @AutoConfigureMockMvc
 @Transactional
 class ReservationApiIntegrationTest {
+
+    private static final LocalDate TEST_BASE = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
 
     @Autowired private MockMvc mockMvc;
 
@@ -73,7 +77,7 @@ class ReservationApiIntegrationTest {
                                 .session(session)
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-10", "2026-11-12")))
+                                .content(requestJson(equipmentId, dateAfter(0), dateAfter(2))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.equipmentId").value(equipmentId));
@@ -85,8 +89,8 @@ class ReservationApiIntegrationTest {
         mockMvc.perform(get("/reservations/{id}", saved.getId()).session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId()))
-                .andExpect(jsonPath("$.startDate").value("2026-11-10"))
-                .andExpect(jsonPath("$.endDate").value("2026-11-12"));
+                .andExpect(jsonPath("$.startDate").value(dateAfter(0)))
+                .andExpect(jsonPath("$.endDate").value(dateAfter(2)));
 
         mockMvc.perform(get("/reservations/my").session(session))
                 .andExpect(status().isOk())
@@ -110,7 +114,7 @@ class ReservationApiIntegrationTest {
                                 .with(user(ownerEmail).roles("USER"))
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-10", "2026-11-12")))
+                                .content(requestJson(equipmentId, dateAfter(0), dateAfter(2))))
                 .andExpect(status().isCreated());
 
         Reservation saved =
@@ -136,7 +140,7 @@ class ReservationApiIntegrationTest {
                                 .with(user(email).roles("USER"))
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-10", "2026-11-12")))
+                                .content(requestJson(equipmentId, dateAfter(0), dateAfter(2))))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(
@@ -144,7 +148,7 @@ class ReservationApiIntegrationTest {
                                 .with(user(email).roles("USER"))
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-12", "2026-11-13")))
+                                .content(requestJson(equipmentId, dateAfter(2), dateAfter(3))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.status").value(409));
 
@@ -153,7 +157,7 @@ class ReservationApiIntegrationTest {
                                 .with(user(email).roles("USER"))
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-13", "2026-11-14")))
+                                .content(requestJson(equipmentId, dateAfter(3), dateAfter(4))))
                 .andExpect(status().isCreated());
 
         Long accountId = accountRepository.findByEmail(email).orElseThrow().getId();
@@ -173,7 +177,7 @@ class ReservationApiIntegrationTest {
                                 .with(user(email).roles("USER"))
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-10", "2026-11-12")))
+                                .content(requestJson(equipmentId, dateAfter(0), dateAfter(2))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
 
@@ -192,9 +196,38 @@ class ReservationApiIntegrationTest {
                                 .with(user(email).roles("USER"))
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(requestJson(equipmentId, "2026-11-15", "2026-11-10")))
+                                .content(requestJson(equipmentId, dateAfter(5), dateAfter(0))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
+    }
+
+    @Test
+    void pastStartDateReturns400AndTodayIsAllowed() throws Exception {
+        String email = saveAccount();
+        int equipmentId = saveEquipment();
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+
+        mockMvc.perform(
+                        post("/reservations")
+                                .with(user(email).roles("USER"))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson(
+                                        equipmentId, today.minusDays(1).toString(), today.plusDays(1).toString())))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(
+                        post("/reservations")
+                                .with(user(email).roles("USER"))
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(requestJson(
+                                        equipmentId, today.toString(), today.plusDays(1).toString())))
+                .andExpect(status().isCreated());
+    }
+
+    private String dateAfter(int days) {
+        return TEST_BASE.plusDays(days).toString();
     }
 
     private String saveAccount() {

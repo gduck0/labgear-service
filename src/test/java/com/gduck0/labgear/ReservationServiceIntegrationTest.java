@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -38,8 +39,8 @@ class ReservationServiceIntegrationTest {
 
         equipmentRepository.save(new Equipment(equipmentId, "TEST-CAMERA"));
 
-        LocalDate startDate = LocalDate.of(2026, 11, 10);
-        LocalDate endDate = LocalDate.of(2026, 11, 12);
+        LocalDate startDate = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(30);
+        LocalDate endDate = startDate.plusDays(2);
 
         Reservation created =
                 reservationService.createReservation(email, equipmentId, startDate, endDate);
