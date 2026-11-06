@@ -27,6 +27,22 @@ Spring Security 기반 세션 인증과 역할별 접근 제어를 적용했습�
 
 취소·반납 후에도 예약 기록은 보존합니다. 현재 정책상 취소된 예약 기간은 재예약할 수 있고, 반납 완료된 예약 기간은 중복 검사 대상에 남습니다.
 
+### 서비스 화면
+
+<table>
+  <thead>
+    <tr><th>학생 — 예약 기간 선택</th><th>관리자 — 대여·반납 관리</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center" valign="top"><img src="docs/images/booking-calendar.png" alt="학생이 기자재 예약 시작일과 종료일을 달력에서 선택하는 화면" width="300"></td>
+      <td align="center" valign="top"><img src="docs/images/admin-rental.png" alt="관리자 화면에서 대여 중 및 반납 완료 예약을 확인하는 모습" width="650"></td>
+    </tr>
+  </tbody>
+</table>
+
+<sub>테스트 데이터로 촬영했으며 계정 정보는 가렸습니다.</sub>
+
 ## 2. 데이터 정합성 문제와 기술적 선택
 
 | 문제 | 지켜야 하는 조건 | 선택한 해결책 |
