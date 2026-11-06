@@ -12,6 +12,10 @@ LabGear는 학과 실습과 캡스톤디자인에 사용하는 기자재를 학�
 - **형태:** 개인 프로젝트
 - **현재 상태:** 핵심 기능 및 CI 구축 완료, 공개 배포 전
 
+### 서비스 메인 화면
+
+![LabGear 학과 기자재 예약 서비스 메인 화면](docs/images/homepage-hero.png)
+
 ## 1. 주요 기능
 
 **기자재 조회 → 기간 예약 → 관리자 대여 인계 → 반납 확인**
@@ -35,8 +39,8 @@ Spring Security 기반 세션 인증과 역할별 접근 제어를 적용했습�
   </thead>
   <tbody>
     <tr>
-      <td align="center" valign="top"><img src="docs/images/booking-calendar.png" alt="학생이 기자재 예약 시작일과 종료일을 달력에서 선택하는 화면" width="300"></td>
-      <td align="center" valign="top"><img src="docs/images/admin-rental.png" alt="관리자 화면에서 대여 중 및 반납 완료 예약을 확인하는 모습" width="650"></td>
+      <td align="center" valign="top"><img src="docs/images/student-reservation-calendar.png" alt="학생이 기자재 예약 시작일과 종료일을 달력에서 선택하는 화면" width="300"></td>
+      <td align="center" valign="top"><img src="docs/images/admin-rental-management.png" alt="관리자 화면에서 대여 중 및 반납 완료 예약을 확인하는 모습" width="650"></td>
     </tr>
   </tbody>
 </table>
