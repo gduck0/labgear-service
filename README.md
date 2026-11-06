@@ -35,8 +35,8 @@ Spring Security 기반 세션 인증과 역할별 접근 제어를 적용했습�
   </thead>
   <tbody>
     <tr>
-      <td align="center" valign="top"><img src="docs/images/booking-calendar.png" alt="학생이 기자재 예약 시작일과 종료일을 달력에서 선택하는 화면" width="300"></td>
-      <td align="center" valign="top"><img src="docs/images/admin-rental.png" alt="관리자 화면에서 대여 중 및 반납 완료 예약을 확인하는 모습" width="650"></td>
+      <td align="center" valign="top"><img src="docs/images/student-reservation-calendar.png" alt="학생이 기자재 예약 시작일과 종료일을 달력에서 선택하는 화면" width="300"></td>
+      <td align="center" valign="top"><img src="docs/images/admin-rental-management.png" alt="관리자 화면에서 대여 중 및 반납 완료 예약을 확인하는 모습" width="650"></td>
     </tr>
   </tbody>
 </table>
